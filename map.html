@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Level Interactive Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 118, 117, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(255, 204, 112, 0.3) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(1deg); }
+            66% { transform: translateY(-10px) rotate(-1deg); }
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .map-wrapper {
+            position: relative;
+            width: min(90vw, 1200px);
+            height: min(85vh, 700px);
+            animation: slideInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .map-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            animation: shimmer 3s infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .map-container:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 
+                0 32px 64px -12px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Control panel */
+        .control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeInRight 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                transform: translateX(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .control-btn:hover::before {
+            left: 100%;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Info panel */
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            max-width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            animation: fadeInLeft 0.8s ease-out 0.5s both;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                transform: translateX(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .info-panel h3 {
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.2em;
+        }
+
+        .info-panel p {
+            font-size: 0.9em;
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+
+        /* Loading animation */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            border-radius: 24px;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .control-panel {
+                top: 10px;
+                right: 10px;
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .info-panel {
+                bottom: 10px;
+                left: 10px;
+                max-width: calc(100vw - 120px);
+                padding: 16px;
+            }
+
+            .map-container {
+                border-radius: 16px;
+            }
+        }
+
+        /* Custom map controls styling */
+        .leaflet-control-container .leaflet-control {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .leaflet-control-zoom a {
+            background: transparent !important;
+            color: #333 !important;
+            font-weight: bold !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="map-wrapper">
+            <div class="map-container">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner"></div>
+                </div>
+                <div id="map"></div>
+                
+                <div class="control-panel">
+                    <button class="control-btn" onclick="toggleSatellite()">🛰️ Satellite</button>
+                    <button class="control-btn" onclick="addRandomMarker()">📍 Add Marker</button>
+                    <button class="control-btn" onclick="centerMap()">🎯 Center</button>
+                </div>
+                
+                <div class="info-panel">
+                    <h3>Interactive Map</h3>
+                    <p>Explore the world with our next-level map experience. Click and drag to navigate, zoom with your mouse wheel, and use the controls to enhance your journey.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map with enhanced styling
+        const map = L.map('map', {
+            zoomControl: true,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            touchZoom: true,
+            dragging: true,
+            attributionControl: false
+        }).setView([40.7128, -74.0060], 10);
+
+        // Add attribution control at bottom right
+        L.control.attribution({
+            position: 'bottomright',
+            prefix: false
+        }).addAttribution('© OpenStreetMap contributors').addTo(map);
+
+        // Default tile layer
+        let currentLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Satellite tile layer
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
+        });
+
+        let isSatellite = false;
+        let markers = [];
+
+        // Hide loading overlay after map loads
+        map.whenReady(() => {
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 1000);
+        });
+
+        // Toggle satellite view
+        function toggleSatellite() {
+            if (isSatellite) {
+                map.removeLayer(satelliteLayer);
+                currentLayer.addTo(map);
+                isSatellite = false;
+            } else {
+                map.removeLayer(currentLayer);
+                satelliteLayer.addTo(map);
+                isSatellite = true;
+            }
+        }
+
+        // Add random marker with animation
+        function addRandomMarker() {
+            const bounds = map.getBounds();
+            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * Math.random();
+            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * Math.random();
+            
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(`
+                <div style="text-align: center; padding: 10px;">
+                    <h4 style="margin: 0 0 5px 0; color: #667eea;">Random Location</h4>
+                    <p style="margin: 0; font-size: 0.9em;">Lat: ${lat.toFixed(4)}<br>Lng: ${lng.toFixed(4)}</p>
+                </div>
+            `).openPopup();
+            
+            markers.push(marker);
+            
+            // Add bounce animation
+            setTimeout(() => {
+                marker.getElement().style.animation = 'bounce 0.6s ease-in-out';
+            }, 100);
+        }
+
+        // Center map on New York
+        function centerMap() {
+            map.flyTo([40.7128, -74.0060], 10, {
+                animate: true,
+                duration: 1.5
+            });
+        }
+
+        // Add some initial markers with custom icons
+        const locations = [
+            { lat: 40.7589, lng: -73.9851, name: "Times Square", desc: "The heart of NYC" },
+            { lat: 40.6892, lng: -74.0445, name: "Statue of Liberty", desc: "Symbol of freedom" },
+            { lat: 40.7505, lng: -73.9934, name: "Empire State Building", desc: "Iconic skyscraper" }
+        ];
+
+        locations.forEach((loc, index) => {
+            setTimeout(() => {
+                const marker = L.marker([loc.lat, loc.lng]).addTo(map);
+                marker.bindPopup(`
+                    <div style="text-align: center; padding: 10px;">
+                        <h4 style="margin: 0 0 5px 0; color: #667eea;">${loc.name}</h4>
+                        <p style="margin: 0; font-size: 0.9em;">${loc.desc}</p>
+                    </div>
+                `);
+                markers.push(marker);
+            }, index * 300);
+        });
+
+        // Add map interaction effects
+        map.on('zoomstart', () => {
+            document.querySelector('.map-container').style.transform = 'scale(0.98)';
+        });
+
+        map.on('zoomend', () => {
+            document.querySelector('.map-container').style.transform = 'scale(1)';
+        });
+
+        // Add click effect
+        map.on('click', (e) => {
+            const ripple = document.createElement('div');
+            ripple.style.cssText = `
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                background: rgba(102, 126, 234, 0.6);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                animation: rippleEffect 0.6s ease-out forwards;
+                pointer-events: none;
+                z-index: 1000;
+            `;
+            
+            const mapContainer = document.querySelector('.map-container');
+            mapContainer.appendChild(ripple);
+            
+            const containerRect = mapContainer.getBoundingClientRect();
+            const point = map.latLngToContainerPoint(e.latlng);
+            ripple.style.left = point.x + 'px';
+            ripple.style.top = point.y + 'px';
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        // Add ripple effect keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes rippleEffect {
+                0% {
+                    transform: translate(-50%, -50%) scale(0);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(-50%, -50%) scale(4);
+                    opacity: 0;
+                }
+            }
+            @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% {
+                    transform: translateY(0);
+                }
+                40% {
+                    transform: translateY(-10px);
+                }
+                60% {
+                    transform: translateY(-5px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

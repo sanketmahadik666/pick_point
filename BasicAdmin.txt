@@ -1,0 +1,34 @@
+
+
+
+//we make the high level desing and work trought it
+
+// hsrd links sre travers the file sytem in hte same directory
+
+
+
+ls -al 
+
+* it show as all the file in the root directory 
+hardlink is pointer to go to same memory location
+// hard ink fuction for that file vut the soft file go anywehere
+
+
+
+you cant delete file when you whill delete on the sytem it will get into it by the pointer it get removed over there just all content still kept on the disk
+
+
+here the s3 will bind the stuff like the bind the all the stul=ff but at the backend it will have the api call 
+//phoresic tools
+
+
+rpm -gs | grep -i 
+
+
+// it will find the get the optin by the httpd it then have to 
+
+
+
+sytemctl httpd   : ensure the it will installed on the systenm
+
+
