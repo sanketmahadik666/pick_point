@@ -318,20 +318,46 @@
                     <div class="spinner"></div>
                 </div>
                 <div id="map"></div>
-                
-                <div class="control-panel">
-                    <button class="control-btn" onclick="toggleSatellite()">🛰️ Satellite</button>
-                    <button class="control-btn" onclick="addRandomMarker()">📍 Add Marker</button>
-                    <button class="control-btn" onclick="centerMap()">🎯 Center</button>
+                <div class="control-panel" style="min-width:260px;">
+                    <div style="margin-bottom:12px;">
+                        <strong>1. Join or Create a Game</strong><br>
+                        <input id="gameIdInput" placeholder="Game ID" style="margin:6px 0 0 0; padding:6px; border-radius:6px; border:1px solid #ccc; width:100%;" />
+                        <button class="control-btn" id="joinGameBtn" style="width:100%;margin-top:6px;">Join Game</button>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <strong>2. Select Your Role</strong><br>
+                        <select id="roleSelect" style="margin:6px 0 0 0; padding:6px; border-radius:6px; border:1px solid #ccc; width:100%;">
+                            <option value="hider">Hider (Hide a spot)</option>
+                            <option value="seeker">Seeker (Find the spot)</option>
+                        </select>
+                    </div>
+                    <div id="hiderActions" style="display:none; margin-bottom:12px;">
+                        <strong>3. Hider: Set a Location</strong><br>
+                        <div id="hiderLocationInfo" style="display:none; margin:6px 0 0 0; padding:6px; border-radius:6px; background:rgba(255,255,255,0.3); font-size:0.95em;"></div>
+                        <button class="control-btn" id="confirmLocationBtn" style="width:100%;margin-top:6px;display:none;">Confirm Location</button>
+                        <div style="font-size:0.9em;opacity:0.7;margin-top:4px;">Click on the map to choose your secret spot.</div>
+                    </div>
+                    <div id="seekerActions" style="display:none; margin-bottom:12px;">
+                        <strong>3. Seeker: Make a Guess</strong><br>
+                        <button class="control-btn" id="guessLocationBtn" style="width:100%;margin-top:6px;">Guess Location</button>
+                        <div style="font-size:0.9em;opacity:0.7;margin-top:4px;">Click on the map where you think the hider's spot is!</div>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <button class="control-btn" onclick="toggleSatellite()">🛰️ Satellite</button>
+                        <button class="control-btn" onclick="centerMap()">🎯 Center</button>
+                    </div>
+                    <div id="gameStatus" style="background:rgba(255,255,255,0.2);border-radius:8px;padding:8px 10px;font-size:1em;min-height:32px;"></div>
                 </div>
-                
                 <div class="info-panel">
-                    <h3>Interactive Map</h3>
-                    <p>Explore the world with our next-level map experience. Click and drag to navigate, zoom with your mouse wheel, and use the controls to enhance your journey.</p>
+                    <h3>Multiplayer Map Game</h3>
+                    <p>Join a game by ID, choose your role, and play! Hider sets a location, seeker tries to find it on the map.</p>
                 </div>
             </div>
         </div>
     </div>
+    <script type="module" src="mapManager.js"></script>
+    <script type="module" src="webSocketManager.js"></script>
+    <script type="module" src="gameManager.js"></script>
 
     <script>
         // Initialize map with enhanced styling
@@ -496,6 +522,17 @@
             }
         `;
         document.head.appendChild(style);
+
+        export function initMap() {
+            // Clean up any existing map instance (for hot reload)
+            if (window._leaflet_map_instance) {
+                window._leaflet_map_instance.remove();
+                window._leaflet_map_instance = null;
+            }
+            map = L.map('map', { ... });
+            window._leaflet_map_instance = map;
+            // ... rest of your code ...
+        }
     </script>
 </body>
 </html>
