@@ -183,15 +183,27 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('set_location', ({ gameId, location, radius }) => {
+    socket.on('set_location', ({ gameId, location, radius, hint }) => {
         const game = games[gameId];
         if (!game || socket.id !== game.setterId || game.phase !== 'SETTING') return;
         
+        // Ellipse parameters
+        const radiusX = radius * 1.5;
+        const radiusY = radius;
+        const rotation = Math.random() * Math.PI; // random rotation in radians
+
         game.actualLocation = { lat: location[0], lon: location[1] };
-        game.hint = { center: location, radius: radius };
+        game.hint = {
+            center: location,
+            radius: radius, // keep for reference
+            radiusX: radiusX,
+            radiusY: radiusY,
+            rotation: rotation,
+            message: hint
+        };
         game.phase = 'GUESSING';
         
-        console.log(`[${gameId}] Location set by ${socket.id}`);
+        console.log(`[${gameId}] Location set by ${socket.id} with hint: ${hint}, ellipse: (${radiusX}, ${radiusY}, ${rotation})`);
         emitGameState(gameId);
     });
 
