@@ -1,5 +1,5 @@
 {
-  "name": "myterminal",
+  "name": "pick_point",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,5 +8,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "haversine-distance": "^1.2.4",
+    "socket.io": "^4.8.1"
+  }
 }

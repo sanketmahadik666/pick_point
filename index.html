@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find My Spot</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+     /* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Game controls container */
+#game-controls {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Typography */
+h1 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #34495e;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    color: #7f8c8d;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+/* Control groups */
+.control-group {
+    margin-bottom: 2rem;
+}
+
+.control-group label {
+    display: block;
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Input styling */
+input[type="text"] {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background: white;
+    margin-right: 1rem;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+input[type="text"]::placeholder {
+    color: #95a5a6;
+}
+
+/* Range slider styling */
+input[type="range"] {
+    width: 100%;
+    max-width: 300px;
+    height: 8px;
+    border-radius: 4px;
+    background: #e1e8ed;
+    outline: none;
+    margin: 1rem 0;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: #5a67d8;
+    transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Button styling */
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Join controls layout */
+#join-controls .control-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem;
+}
+
+#join-controls label {
+    flex: 1;
+    min-width: 200px;
+}
+
+#join-controls input {
+    margin-right: 0;
+}
+
+/* Game info styling */
+#game-info {
+    background: rgba(52, 152, 219, 0.1);
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+/* Player cards */
+#player-info {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.player-card {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+    border-color: #667eea;
+}
+
+.player-card div {
+    margin-bottom: 0.5rem;
+}
+
+.player-card div:first-child {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.player-card div:last-child {
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+/* Prompt styling */
+#prompt {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    margin-top: 1rem;
+}
+
+/* Map container */
+#map-container {
+    flex: 1;
+    margin: 0 1rem 1rem 1rem;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    min-height: 400px;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    border-radius: 20px;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    body {
+        margin: 0;
+    }
+    
+    #game-controls {
+        margin: 0.5rem;
+        padding: 1.5rem;
+        border-radius: 15px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    #join-controls .control-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #join-controls label {
+        min-width: auto;
+    }
+    
+    input[type="text"], 
+    input[type="range"] {
+        max-width: none;
+    }
+    
+    #player-info {
+        flex-direction: column;
+    }
+    
+    .player-card {
+        min-width: auto;
+    }
+    
+    #map-container {
+        margin: 0 0.5rem 0.5rem 0.5rem;
+        border-radius: 15px;
+    }
+    
+    #map {
+        border-radius: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    #game-controls {
+        padding: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    button {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    #join-controls input {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Animation for showing/hiding elements */
+#game-info,
+#setter-controls {
+    transition: all 0.3s ease;
+}
+
+/* Focus indicators for accessibility */
+button:focus,
+input:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Loading state for buttons */
+button.loading {
+    position: relative;
+    color: transparent;
+}
+
+button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+    </style>
+</head>
+<body>
+
+    <div id="game-controls">
+        <h1>Find My Spot</h1>
+
+        <div id="join-controls">
+            <div class="control-group">
+                <label for="game-id-input">Enter Game ID:</label>
+                <input type="text" id="game-id-input" placeholder="e.g., ABCD">
+                <button id="join-game-btn">Join Game</button>
+            </div>
+        </div>
+
+        <div id="game-info" class="hidden">
+            <h2>Game: <span id="game-id-display"></span></h2>
+            <h3>Round: <span id="round-display"></span> / 6</h3>
+            <div id="player-info">
+                <div class="player-card" id="player1">
+                    <div id="player1-name">Player 1</div>
+                    <div id="player1-score">Score: 0</div>
+                </div>
+                <div class="player-card" id="player2">
+                    <div id="player2-name">Player 2</div>
+                    <div id="player2-score">Score: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="setter-controls" class="control-group hidden">
+            <label for="radius-slider">Hint Radius: <span id="radius-value">1</span> km</label>
+            <input type="range" id="radius-slider" min="1" max="10" value="1">
+            <button id="set-location-btn" disabled>Set Location</button>
+        </div>
+
+        <div id="prompt">Welcome! Join a game to start.</div>
+    </div>
+
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // --- Game State and Global Variables ---
+        let socket;
+        let map;
+        let gameState = {
+            gameId: null,
+            playerId: null,
+            players: {},
+            round: 0,
+            maxRounds: 6,
+            phase: 'INIT', // INIT, WAITING, SETTING, GUESSING, ROUND_END, GAME_END
+            role: null, // Setter, Guesser
+            setterId: null,
+            guesserId: null,
+            hint: null,
+            attemptsLeft: 3,
+        };
+
+        // Map layers
+        let tempMarker, hintCircle, guessMarkers = [], actualMarker, resultLine;
+        
+        // --- DOM Elements ---
+        const joinControls = document.getElementById('join-controls');
+        const gameInfo = document.getElementById('game-info');
+        const setterControls = document.getElementById('setter-controls');
+        const joinGameBtn = document.getElementById('join-game-btn');
+        const setLocationBtn = document.getElementById('set-location-btn');
+        const gameIdInput = document.getElementById('game-id-input');
+        const promptEl = document.getElementById('prompt');
+
+        // --- Event Listeners ---
+        window.addEventListener('DOMContentLoaded', initializeMap);
+        joinGameBtn.addEventListener('click', joinGame);
+        setLocationBtn.addEventListener('click', confirmSetLocation);
+        document.getElementById('radius-slider').addEventListener('input', (e) => {
+            document.getElementById('radius-value').textContent = e.target.value;
+        });
+
+        // --- Initialization ---
+        function initializeMap() {
+            map = L.map('map').setView([20, 0], 2); // World view
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            map.on('click', onMapClick);
+        }
+        
+        function joinGame() {
+            const gameId = gameIdInput.value.trim().toUpperCase();
+            if (!gameId) {
+                showPrompt("Please enter a Game ID.", true);
+                return;
+            }
+
+            // Connect to server (replace with your server URL in a real app)
+            if (!socket || !socket.connected) {
+                socket = io(); // Connects to the server that serves the page
+                setupSocketListeners();
+            }
+            
+            lockUI(true);
+            showPrompt("Joining game...");
+            socket.emit('join_game', { gameId });
+        }
+
+        // --- Socket.IO Event Handlers ---
+        function setupSocketListeners() {
+            socket.on('connect', () => {
+                console.log("Connected to server with ID:", socket.id);
+                gameState.playerId = socket.id;
+            });
+
+            socket.on('game_state', (serverState) => {
+                console.log('Received game_state:', serverState);
+                Object.assign(gameState, serverState);
+                gameState.playerId = socket.id; // Ensure our player ID is always correct
+                
+                // Determine player's role
+                if (gameState.setterId === gameState.playerId) {
+                    gameState.role = 'Setter';
+                } else if (gameState.guesserId === gameState.playerId) {
+                    gameState.role = 'Guesser';
+                } else {
+                    gameState.role = 'Spectator';
+                }
+                
+                updateUI();
+                lockUI(false);
+            });
+
+            socket.on('round_end', (data) => {
+                console.log('Round end:', data);
+                gameState.phase = 'ROUND_END';
+                showActualLocation(data.actualLocation, data.lastGuess);
+                showPrompt(`Round over! The spot was ${data.distance.toFixed(2)}km away. ${data.roundPoints} points awarded.`);
+                // Server will send a new 'game_state' for the next round after a delay
+            });
+
+            socket.on('guess_result', (data) => {
+                console.log('Guess result:', data);
+                showGuessMarker(data.guessLocation);
+                gameState.attemptsLeft = data.attemptsLeft;
+                showPrompt(`Your guess is ${data.distance.toFixed(2)}km away. You have ${data.attemptsLeft} attempts left.`);
+                
+                if (data.newHintRadius) {
+                    showHintCircle(gameState.hint.center, data.newHintRadius);
+                }
+                lockUI(false);
+            });
+            
+            socket.on('game_end', (data) => {
+                console.log('Game end:', data);
+                gameState.phase = 'GAME_END';
+                updateUI(); // To update final scores
+                const winner = data.winnerId ? gameState.players[data.winnerId].name : 'No one';
+                const message = data.isDraw ? "It's a draw!" : `${winner} wins the game!`;
+                showPrompt(message);
+                lockUI(true); // Lock everything except starting a new game
+            });
+
+            socket.on('error_message', (data) => {
+                showPrompt(data.message, true);
+                lockUI(false);
+                // If the error is critical, maybe reset the UI to the join screen
+                if(socket) socket.disconnect();
+                resetToJoinScreen();
+            });
+        }
+        
+        // --- Game Logic ---
+        function onMapClick(e) {
+            const { lat, lng } = e.latlng;
+
+            if (gameState.phase === 'SETTING' && gameState.role === 'Setter') {
+                if (tempMarker) map.removeLayer(tempMarker);
+                tempMarker = L.marker([lat, lng]).addTo(map);
+                setLocationBtn.disabled = false;
+                showPrompt("You've selected a spot. Click 'Set Location' to confirm.");
+            }
+
+            if (gameState.phase === 'GUESSING' && gameState.role === 'Guesser' && gameState.attemptsLeft > 0) {
+                lockUI(true);
+                showPrompt("Submitting your guess...");
+                socket.emit('make_guess', { gameId: gameState.gameId, location: [lat, lng] });
+            }
+        }
+
+        function confirmSetLocation() {
+            if (!tempMarker) return;
+            lockUI(true);
+            const location = tempMarker.getLatLng();
+            const radius = document.getElementById('radius-slider').value * 1000; // in meters
+
+            socket.emit('set_location', {
+                gameId: gameState.gameId,
+                location: [location.lat, location.lng],
+                radius: radius
+            });
+            showPrompt("Location set! Waiting for the guesser...");
+        }
+
+        // --- UI Update Functions ---
+        function updateUI() {
+            console.log("Updating UI for phase:", gameState.phase, "and role:", gameState.role);
+            clearMapLayers();
+            
+            // Show/hide main panels
+            const inGame = gameState.gameId && gameState.phase !== 'INIT';
+            joinControls.classList.toggle('hidden', inGame);
+            gameInfo.classList.toggle('hidden', !inGame);
+
+            if (!inGame) {
+                resetToJoinScreen();
+                return;
+            }
+            
+            // Update game info
+            document.getElementById('game-id-display').textContent = gameState.gameId;
+            document.getElementById('round-display').textContent = gameState.round;
+            
+            // Update player cards
+            const playerIds = Object.keys(gameState.players);
+            if (playerIds.length > 0) {
+                const p1 = gameState.players[playerIds[0]];
+                document.getElementById('player1-name').textContent = p1.name;
+                document.getElementById('player1-score').textContent = `Score: ${p1.score}`;
+                document.getElementById('player1').classList.toggle('active', gameState.setterId === playerIds[0]);
+            }
+            if (playerIds.length > 1) {
+                const p2 = gameState.players[playerIds[1]];
+                document.getElementById('player2-name').textContent = p2.name;
+                document.getElementById('player2-score').textContent = `Score: ${p2.score}`;
+                document.getElementById('player2').classList.toggle('active', gameState.setterId === playerIds[1]);
+                document.getElementById('player2').classList.remove('hidden');
+            } else {
+                 document.getElementById('player2').classList.add('hidden');
+            }
+
+            // Phase-specific UI
+            setterControls.classList.add('hidden');
+
+            switch (gameState.phase) {
+                case 'WAITING':
+                    showPrompt('Waiting for another player to join...');
+                    break;
+                case 'SETTING':
+                    if (gameState.role === 'Setter') {
+                        setterControls.classList.remove('hidden');
+                        setLocationBtn.disabled = true;
+                        showPrompt('Click on the map to choose a secret location.');
+                    } else {
+                        showPrompt(`Waiting for ${gameState.players[gameState.setterId].name} to set a location...`);
+                    }
+                    break;
+                case 'GUESSING':
+                    showHintCircle(gameState.hint.center, gameState.hint.radius);
+                    if (gameState.role === 'Guesser') {
+                        showPrompt(`Click inside the circle to make your guess! Attempts left: ${gameState.attemptsLeft}`);
+                    } else {
+                        showPrompt(`Waiting for ${gameState.players[gameState.guesserId].name} to guess...`);
+                    }
+                    break;
+                case 'ROUND_END':
+                    // Prompt is handled by the round_end event handler
+                    break;
+                case 'GAME_END':
+                    // Prompt is handled by the game_end event handler
+                    break;
+            }
+        }
+        
+        function resetToJoinScreen() {
+            joinControls.classList.remove('hidden');
+            gameInfo.classList.add('hidden');
+            setterControls.classList.add('hidden');
+            lockUI(false);
+            joinGameBtn.disabled = false;
+        }
+
+        function lockUI(lock) {
+            joinGameBtn.disabled = lock;
+            setLocationBtn.disabled = lock;
+            // A locked map should not be clickable for game actions
+            if (lock) map.off('click', onMapClick);
+            else map.on('click', onMapClick);
+        }
+
+        function showPrompt(message, isError = false) {
+            promptEl.textContent = message;
+            promptEl.classList.toggle('error', isError);
+        }
+        
+        // --- Map Helper Functions ---
+        function clearMapLayers() {
+            if (tempMarker) map.removeLayer(tempMarker);
+            if (hintCircle) map.removeLayer(hintCircle);
+            if (actualMarker) map.removeLayer(actualMarker);
+            if (resultLine) map.removeLayer(resultLine);
+            guessMarkers.forEach(m => map.removeLayer(m));
+            
+            tempMarker = null;
+            hintCircle = null;
+            actualMarker = null;
+            resultLine = null;
+            guessMarkers = [];
+        }
+
+        function showHintCircle(center, radius) {
+            if (hintCircle) map.removeLayer(hintCircle);
+            hintCircle = L.circle(center, {
+                radius: radius,
+                color: 'blue',
+                fillColor: '#30f',
+                fillOpacity: 0.2
+            }).addTo(map);
+            map.fitBounds(hintCircle.getBounds());
+        }
+
+        function showGuessMarker(location) {
+             const guessMarker = L.marker(location, {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                })
+            }).addTo(map);
+            guessMarkers.push(guessMarker);
+        }
+        
+        function showActualLocation(actualLoc, guessLoc) {
+            if (actualMarker) map.removeLayer(actualMarker);
+            actualMarker = L.marker(actualLoc, {
+                 icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                })
+            }).addTo(map);
+            
+            if (guessLoc) {
+                // Find the last guess marker to draw a line from
+                const lastGuessMarker = guessMarkers[guessMarkers.length - 1];
+                if (lastGuessMarker) {
+                    const linePoints = [actualLoc, lastGuessMarker.getLatLng()];
+                    resultLine = L.polyline(linePoints, { color: 'red' }).addTo(map);
+                    map.fitBounds(resultLine.getBounds().pad(0.2));
+                }
+            } else {
+                 map.setView(actualLoc, 13);
+            }
+        }
+    </script>
+</body>
+</html>
