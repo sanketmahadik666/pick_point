@@ -267,15 +267,37 @@
         #game-controls::after {
             content: '🌸';
             position: absolute;
-            top: -8px;
-            right: 25px;
-            font-size: 1.5rem;
+            top: -18px;
+            right: 15px;
+            font-size: 3.5rem;
             animation: var(--sparkle-animation);
             animation-delay: 1s;
             filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
         }
-
+            
         #game-controls h1 {
+            margin: 0 0 2.5rem;
+            text-align: center;
+            background: var(--gradient-elegant);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            position: relative;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-shadow: none;
+            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
+        }
+
+        /* Multiple sparkles randomly scattered around the h1 */
+        #game-controls h1 .sparkle {
+            position: absolute;
+            font-size: 1.2rem;
+            animation: elegantSparkle 3s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+            pointer-events: none;
+        
             margin: 0 0 2.5rem;
             text-align: center;
             background: var(--gradient-elegant);
@@ -301,6 +323,58 @@
             animation-delay: 1.5s;
             filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
         }
+
+             #game-controls h1::after {
+            content: '✨';
+            position: absolute;
+            bottom: -20px;
+            left: 0%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            animation: var(--sparkle-animation);
+            animation-delay: 1.5s;
+            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+        }
+
+
+             #game-controls h1::after {
+            content: '✨';
+            position: absolute;
+            bottom: -20px;
+            left: 10%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            animation: var(--sparkle-animation);
+            animation-delay: 1.5s;
+            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+        }
+
+
+             #game-controls h1::after {
+            content: '✨';
+            position: absolute;
+            bottom: -25px;
+            left: 70%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            animation: var(--sparkle-animation);
+            animation-delay: 1.5s;
+            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+        }
+
+
+             #game-controls h1::after {
+            content: '✨';
+            position: absolute;
+            bottom: -30px;
+            left: 40%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            animation: var(--sparkle-animation);
+            animation-delay: 1.5s;
+            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+        }
+
 
         .control-group {
             margin-bottom: 2.5rem;
@@ -491,7 +565,7 @@
             position: absolute;
             top: 15px;
             right: 20px;
-            font-size: 1.1rem;
+            font-size: 4.1rem;
             z-index: 100;
             animation: var(--sparkle-animation);
             animation-delay: 3s;
