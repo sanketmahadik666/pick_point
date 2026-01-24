@@ -1,651 +1,718 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Find My Spot</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700|Quicksand:400,700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css?family=Playfair+Display:700|Quicksand:400,700&display=swap"
+      rel="stylesheet"
+    />
     <style>
+      :root {
+        --primary-color: #ff69b4;
+        --secondary-color: #9d7aba;
+        --accent-color: #ff91c7;
+        --success-color: #98d8c8;
+        --background-color: #fef7ff;
+        --card-color: #ffffff;
+        --rose-gold: #b76e79;
+        --rose-gold-light: #c98b94;
+        --rose-gold-dark: #a15864;
+        --gradient-primary: linear-gradient(135deg, #ff69b4, #ff91c7, #dda0dd);
+        --gradient-secondary: linear-gradient(135deg, #f093fb, #f5576c);
+        --gradient-elegant: linear-gradient(
+          135deg,
+          #b76e79 0%,
+          #dda0dd 50%,
+          #ff91c7 100%
+        );
+        --gradient-background: radial-gradient(
+          circle at 30% 20%,
+          rgba(255, 182, 193, 0.25) 0%,
+          rgba(221, 160, 221, 0.15) 50%,
+          rgba(255, 240, 245, 0.85) 100%
+        );
+        --shadow-elegant:
+          0 8px 32px rgba(183, 110, 121, 0.12),
+          0 2px 8px rgba(183, 110, 121, 0.08);
+        --shadow-hover:
+          0 12px 40px rgba(183, 110, 121, 0.18),
+          0 4px 12px rgba(183, 110, 121, 0.12);
+        --shadow-subtle: 0 4px 16px rgba(183, 110, 121, 0.08);
+        --glow-text: 0 2px 8px rgba(183, 110, 121, 0.25);
+        --glow-soft: 0 0 20px rgba(255, 182, 193, 0.3);
+        --border-radius-sm: 15px;
+        --border-radius-md: 20px;
+        --border-radius-lg: 25px;
+        --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --sparkle-animation: elegantSparkle 3s ease-in-out infinite;
+      }
 
-        
-   :root {
-            --primary-color: #ff69b4;
-            --secondary-color: #9d7aba;
-            --accent-color: #ff91c7;
-            --success-color: #98d8c8;
-            --background-color: #fef7ff;
-            --card-color: #ffffff;
-            --rose-gold: #b76e79;
-            --rose-gold-light: #c98b94;
-            --rose-gold-dark: #a15864;
-            --gradient-primary: linear-gradient(135deg, #ff69b4, #ff91c7, #dda0dd);
-            --gradient-secondary: linear-gradient(135deg, #f093fb, #f5576c);
-            --gradient-elegant: linear-gradient(135deg, #b76e79 0%, #dda0dd 50%, #ff91c7 100%);
-            --gradient-background: radial-gradient(circle at 30% 20%, rgba(255, 182, 193, 0.25) 0%, rgba(221, 160, 221, 0.15) 50%, rgba(255, 240, 245, 0.85) 100%);
-            --shadow-elegant: 0 8px 32px rgba(183, 110, 121, 0.12), 0 2px 8px rgba(183, 110, 121, 0.08);
-            --shadow-hover: 0 12px 40px rgba(183, 110, 121, 0.18), 0 4px 12px rgba(183, 110, 121, 0.12);
-            --shadow-subtle: 0 4px 16px rgba(183, 110, 121, 0.08);
-            --glow-text: 0 2px 8px rgba(183, 110, 121, 0.25);
-            --glow-soft: 0 0 20px rgba(255, 182, 193, 0.3);
-            --border-radius-sm: 15px;
-            --border-radius-md: 20px;
-            --border-radius-lg: 25px;
-            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --sparkle-animation: elegantSparkle 3s ease-in-out infinite;
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--gradient-background);
+        color: #3d2c4e;
+        font-family: "Quicksand", "Lato", Arial, sans-serif;
+        min-height: 100vh;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Playfair Display", "Cormorant Garamond", serif;
+        color: var(--rose-gold);
+        letter-spacing: 1.5px;
+        margin-bottom: 0.5em;
+        text-shadow: var(--glow-text);
+      }
+
+      #map {
+        border: 2px solid var(--rose-gold);
+        border-radius: var(--border-radius-md);
+        box-shadow:
+          var(--shadow-elegant),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        margin: 2em auto;
+        width: 90vw;
+        max-width: 800px;
+        height: 60vh;
+        position: relative;
+      }
+
+      #map::before {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        right: -1px;
+        bottom: -1px;
+        background: linear-gradient(
+          135deg,
+          var(--rose-gold-light),
+          var(--rose-gold-dark)
+        );
+        border-radius: var(--border-radius-md);
+        z-index: -1;
+        opacity: 0.1;
+      }
+
+      button,
+      .btn {
+        background: linear-gradient(
+          135deg,
+          rgba(227, 230, 243, 0.9),
+          rgba(248, 225, 244, 0.9)
+        );
+        color: var(--rose-gold);
+        border: 1.5px solid var(--rose-gold);
+        border-radius: var(--border-radius-sm);
+        padding: 0.75em 2em;
+        font-size: 1.1em;
+        font-family: "Quicksand", sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        overflow: hidden;
+      }
+
+      button::before,
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(
+          circle,
+          rgba(183, 110, 121, 0.1) 0%,
+          transparent 70%
+        );
+        transition: all 0.6s ease;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+      }
+
+      button:hover::before,
+      .btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      button:hover,
+      .btn:hover {
+        background: var(--rose-gold);
+        color: #fff;
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-2px) scale(1.02);
+      }
+
+      button:active,
+      .btn:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .info-panel,
+      .status,
+      .quiz,
+      .fact,
+      .address,
+      .flag {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(183, 110, 121, 0.3);
+        border-radius: var(--border-radius-md);
+        padding: 1.5em 2em;
+        margin: 1em auto;
+        max-width: 600px;
+        box-shadow:
+          var(--shadow-subtle),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+      }
+
+      input,
+      select {
+        border: 1.5px solid rgba(183, 110, 121, 0.4);
+        border-radius: var(--border-radius-sm);
+        padding: 0.75em 1em;
+        background: rgba(255, 255, 255, 0.9);
+        color: #3d2c4e;
+        font-size: 1em;
+        transition: var(--transition);
+        backdrop-filter: blur(5px);
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--rose-gold);
+        box-shadow:
+          0 0 0 3px rgba(183, 110, 121, 0.15),
+          var(--glow-soft);
+        transform: translateY(-1px);
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        background: linear-gradient(to bottom, #f8e1f4, #e3e6f3);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+          to bottom,
+          var(--rose-gold-light),
+          var(--rose-gold-dark)
+        );
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      a {
+        color: var(--rose-gold);
+        text-decoration: none;
+        transition: var(--transition);
+        position: relative;
+      }
+
+      a::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 1px;
+        bottom: -2px;
+        left: 0;
+        background: var(--rose-gold);
+        transition: width 0.3s ease;
+      }
+
+      a:hover::after {
+        width: 100%;
+      }
+
+      a:hover {
+        color: var(--rose-gold-dark);
+        text-shadow: var(--glow-text);
+      }
+
+      /* Refined sparkle animation */
+      @keyframes elegantSparkle {
+        0%,
+        100% {
+          opacity: 0;
+          transform: scale(0.8) rotate(0deg);
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        50% {
+          opacity: 0.7;
+          transform: scale(1.1) rotate(12deg);
         }
+      }
 
-        body {
-            background: var(--gradient-background);
-            color: #3d2c4e;
-            font-family: 'Quicksand', 'Lato', Arial, sans-serif;
-            min-height: 100vh;
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow-x: hidden;
+      body::before {
+        content: "✨";
+        position: fixed;
+        top: 15%;
+        right: 12%;
+        font-size: 1.2rem;
+        animation: var(--sparkle-animation);
+        z-index: 1;
+        animation-delay: 0s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      body::after {
+        content: "🌸";
+        position: fixed;
+        bottom: 20%;
+        left: 10%;
+        font-size: 1rem;
+        animation: var(--sparkle-animation);
+        z-index: 1;
+        animation-delay: 2s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      #game-controls {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(255, 240, 245, 0.9) 100%
+        );
+        padding: 3rem;
+        box-shadow: var(--shadow-elegant);
+        position: relative;
+        border-radius: var(--border-radius-lg);
+        margin: 1.5rem;
+        z-index: 10;
+        border: 1px solid rgba(255, 182, 193, 0.4);
+        backdrop-filter: blur(15px);
+      }
+
+      #game-controls::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-elegant);
+        border-radius: 4px 4px 0 0;
+        opacity: 0.8;
+      }
+
+      #game-controls::after {
+        content: "🌸";
+        position: absolute;
+        top: -18px;
+        right: 15px;
+        font-size: 3.5rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      #game-controls h1 {
+        margin: 0 0 2.5rem;
+        text-align: center;
+        background: var(--gradient-elegant);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.5rem;
+        position: relative;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-shadow: none;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
+      }
+
+      /* Multiple sparkles randomly scattered around the h1 */
+      #game-controls h1 .sparkle {
+        position: absolute;
+        font-size: 1.2rem;
+        animation: elegantSparkle 3s ease-in-out infinite;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+        pointer-events: none;
+
+        margin: 0 0 2.5rem;
+        text-align: center;
+        background: var(--gradient-elegant);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.5rem;
+        position: relative;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-shadow: none;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
+      }
+
+      #game-controls h1::after {
+        content: "✨";
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.2rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1.5s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      #game-controls h1::after {
+        content: "✨";
+        position: absolute;
+        bottom: -20px;
+        left: 0%;
+        transform: translateX(-50%);
+        font-size: 1.2rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1.5s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      #game-controls h1::after {
+        content: "✨";
+        position: absolute;
+        bottom: -20px;
+        left: 10%;
+        transform: translateX(-50%);
+        font-size: 1.2rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1.5s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      #game-controls h1::after {
+        content: "✨";
+        position: absolute;
+        bottom: -25px;
+        left: 70%;
+        transform: translateX(-50%);
+        font-size: 1.2rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1.5s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      #game-controls h1::after {
+        content: "✨";
+        position: absolute;
+        bottom: -30px;
+        left: 40%;
+        transform: translateX(-50%);
+        font-size: 1.2rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1.5s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      .control-group {
+        margin-bottom: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .control-group label {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--secondary-color);
+        font-size: 1rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-family: "Quicksand", sans-serif;
+      }
+
+      .control-group input[type="text"] {
+        padding: 1.2rem 1.5rem;
+        border: 2px solid rgba(255, 182, 193, 0.5);
+        border-radius: var(--border-radius-sm);
+        font-size: 1.1rem;
+        transition: var(--transition);
+        background: linear-gradient(135deg, #fff0f5, #ffeef8);
+        font-family: "Quicksand", sans-serif;
+        box-shadow: inset 0 2px 4px rgba(183, 110, 121, 0.05);
+      }
+
+      .control-group input[type="text"]:focus {
+        border-color: var(--rose-gold);
+        box-shadow:
+          0 0 0 4px rgba(183, 110, 121, 0.15),
+          inset 0 2px 4px rgba(183, 110, 121, 0.05);
+        transform: translateY(-2px);
+      }
+
+      .control-group input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 10px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 182, 193, 0.3),
+          rgba(183, 110, 121, 0.6)
+        );
+        outline: none;
+        margin: 1.5rem 0;
+      }
+
+      .control-group input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--gradient-elegant);
+        cursor: pointer;
+        box-shadow:
+          0 4px 12px rgba(183, 110, 121, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: var(--transition);
+      }
+
+      .control-group input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 6px 16px rgba(183, 110, 121, 0.4);
+      }
+
+      .control-group button {
+        padding: 1.2rem 2rem;
+        background: var(--gradient-elegant);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: var(--transition);
+        margin-top: 1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        overflow: hidden;
+        font-family: "Quicksand", sans-serif;
+      }
+
+      .control-group button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.8s ease;
+      }
+
+      .control-group button:hover::before {
+        left: 100%;
+      }
+
+      .control-group button:hover {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .control-group button:active {
+        transform: translateY(0) scale(0.99);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #player-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin: 2.5rem 0;
+      }
+
+      .player-card {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.95),
+          rgba(255, 240, 245, 0.9)
+        );
+        padding: 2.5rem;
+        border-radius: var(--border-radius-md);
+        text-align: center;
+        box-shadow: var(--shadow-subtle);
+        transition: var(--transition);
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+        animation: elegantFadeIn 1s ease-out forwards;
+        border: 1px solid rgba(255, 182, 193, 0.3);
+        position: relative;
+        backdrop-filter: blur(10px);
+      }
+
+      .player-card::before {
+        content: "👑";
+        position: absolute;
+        top: -8px;
+        right: 20px;
+        font-size: 1.3rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 0.5s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
+
+      @keyframes elegantFadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
+      }
 
-        h1, h2, h3 {
-            font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-            color: var(--rose-gold);
-            letter-spacing: 1.5px;
-            margin-bottom: 0.5em;
-            text-shadow: var(--glow-text);
-        }
+      .player-card:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-4px) scale(1.01);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 240, 245, 0.95),
+          rgba(255, 228, 240, 0.9)
+        );
+      }
 
-        #map {
-            border: 2px solid var(--rose-gold);
-            border-radius: var(--border-radius-md);
-            box-shadow: var(--shadow-elegant),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            margin: 2em auto;
-            width: 90vw;
-            max-width: 800px;
-            height: 60vh;
-            position: relative;
-        }
+      .player-card div {
+        font-size: 1.1rem;
+        margin: 0.8rem 0;
+        color: var(--secondary-color);
+        font-weight: 500;
+      }
 
-        #map::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: -1px;
-            right: -1px;
-            bottom: -1px;
-            background: linear-gradient(135deg, var(--rose-gold-light), var(--rose-gold-dark));
-            border-radius: var(--border-radius-md);
-            z-index: -1;
-            opacity: 0.1;
-        }
+      #map-container {
+        width: 100%;
+        min-height: 450px;
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-elegant);
+        margin: 0 1.5rem 1.5rem 1.5rem;
+        background: var(--card-color);
+        padding-bottom: 1.5rem;
+        border: 1px solid rgba(255, 182, 193, 0.3);
+        position: relative;
+        backdrop-filter: blur(5px);
+      }
 
-        button, .btn {
-            background: linear-gradient(135deg, rgba(227, 230, 243, 0.9), rgba(248, 225, 244, 0.9));
-            color: var(--rose-gold);
-            border: 1.5px solid var(--rose-gold);
-            border-radius: var(--border-radius-sm);
-            padding: 0.75em 2em;
-            font-size: 1.1em;
-            font-family: 'Quicksand', sans-serif;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow-subtle);
-            position: relative;
-            overflow: hidden;
-        }
+      #map-container::before {
+        content: "🗺️";
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 4.1rem;
+        z-index: 100;
+        animation: var(--sparkle-animation);
+        animation-delay: 3s;
+        filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+      }
 
-        button::before, .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: radial-gradient(circle, rgba(183, 110, 121, 0.1) 0%, transparent 70%);
-            transition: all 0.6s ease;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-        }
+      #fun-fact {
+        background: linear-gradient(
+          135deg,
+          rgba(248, 249, 255, 0.95),
+          rgba(255, 240, 248, 0.95)
+        );
+        border-left: 4px solid var(--secondary-color);
+        border-radius: var(--border-radius-sm);
+        padding: 2rem 2.5rem;
+        margin-top: 1.5rem;
+        font-style: italic;
+        color: #444;
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        backdrop-filter: blur(10px);
+      }
 
-        button:hover::before, .btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
+      #fun-fact::before {
+        content: "💡";
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        font-size: 1.1rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 2s;
+      }
 
-        button:hover, .btn:hover {
-            background: var(--rose-gold);
-            color: #fff;
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-2px) scale(1.02);
-        }
+      #quiz {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 247, 230, 0.95),
+          rgba(255, 238, 248, 0.95)
+        );
+        border-left: 4px solid var(--accent-color);
+        border-radius: var(--border-radius-sm);
+        padding: 2rem 2.5rem;
+        margin-top: 1.5rem;
+        color: #7b341e;
+        font-weight: 500;
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        backdrop-filter: blur(10px);
+      }
 
-        button:active, .btn:active {
-            transform: translateY(0) scale(0.98);
-        }
+      #quiz::before {
+        content: "🎯";
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        font-size: 1.1rem;
+        animation: var(--sparkle-animation);
+        animation-delay: 1s;
+      }
 
-        .info-panel, .status, .quiz, .fact, .address, .flag {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(183, 110, 121, 0.3);
-            border-radius: var(--border-radius-md);
-            padding: 1.5em 2em;
-            margin: 1em auto;
-            max-width: 600px;
-            box-shadow: var(--shadow-subtle),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-        }
+      #quiz button {
+        background: var(--gradient-elegant);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: var(--border-radius-sm);
+        margin: 1rem 1rem 0 0;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        overflow: hidden;
+      }
 
-        input, select {
-            border: 1.5px solid rgba(183, 110, 121, 0.4);
-            border-radius: var(--border-radius-sm);
-            padding: 0.75em 1em;
-            background: rgba(255, 255, 255, 0.9);
-            color: #3d2c4e;
-            font-size: 1em;
-            transition: var(--transition);
-            backdrop-filter: blur(5px);
-        }
+      #quiz button:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: var(--shadow-hover);
+      }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--rose-gold);
-            box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.15),
-                        var(--glow-soft);
-            transform: translateY(-1px);
-        }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-            background: linear-gradient(to bottom, #f8e1f4, #e3e6f3);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, var(--rose-gold-light), var(--rose-gold-dark));
-            border-radius: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        a {
-            color: var(--rose-gold);
-            text-decoration: none;
-            transition: var(--transition);
-            position: relative;
-        }
-
-        a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 1px;
-            bottom: -2px;
-            left: 0;
-            background: var(--rose-gold);
-            transition: width 0.3s ease;
-        }
-
-        a:hover::after {
-            width: 100%;
-        }
-
-        a:hover {
-            color: var(--rose-gold-dark);
-            text-shadow: var(--glow-text);
-        }
-
-        /* Refined sparkle animation */
-        @keyframes elegantSparkle {
-            0%, 100% { 
-                opacity: 0; 
-                transform: scale(0.8) rotate(0deg); 
-            }
-            50% { 
-                opacity: 0.7; 
-                transform: scale(1.1) rotate(12deg); 
-            }
-        }
-
-        body::before {
-            content: '✨';
-            position: fixed;
-            top: 15%;
-            right: 12%;
-            font-size: 1.2rem;
-            animation: var(--sparkle-animation);
-            z-index: 1;
-            animation-delay: 0s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-        body::after {
-            content: '🌸';
-            position: fixed;
-            bottom: 20%;
-            left: 10%;
-            font-size: 1rem;
-            animation: var(--sparkle-animation);
-            z-index: 1;
-            animation-delay: 2s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-        #game-controls {
-            background: linear-gradient(135deg, 
-                        rgba(255, 255, 255, 0.95) 0%, 
-                        rgba(255, 240, 245, 0.9) 100%);
-            padding: 3rem;
-            box-shadow: var(--shadow-elegant);
-            position: relative;
-            border-radius: var(--border-radius-lg);
-            margin: 1.5rem;
-            z-index: 10;
-            border: 1px solid rgba(255, 182, 193, 0.4);
-            backdrop-filter: blur(15px);
-        }
-
-        #game-controls::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-elegant);
-            border-radius: 4px 4px 0 0;
-            opacity: 0.8;
-        }
-
-        #game-controls::after {
-            content: '🌸';
-            position: absolute;
-            top: -18px;
-            right: 15px;
-            font-size: 3.5rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-            
-        #game-controls h1 {
-            margin: 0 0 2.5rem;
-            text-align: center;
-            background: var(--gradient-elegant);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 2.5rem;
-            position: relative;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-shadow: none;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
-        }
-
-        /* Multiple sparkles randomly scattered around the h1 */
-        #game-controls h1 .sparkle {
-            position: absolute;
-            font-size: 1.2rem;
-            animation: elegantSparkle 3s ease-in-out infinite;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-            pointer-events: none;
-        
-            margin: 0 0 2.5rem;
-            text-align: center;
-            background: var(--gradient-elegant);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 2.5rem;
-            position: relative;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-shadow: none;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
-        }
-
-        #game-controls h1::after {
-            content: '✨';
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1.5s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-             #game-controls h1::after {
-            content: '✨';
-            position: absolute;
-            bottom: -20px;
-            left: 0%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1.5s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-
-             #game-controls h1::after {
-            content: '✨';
-            position: absolute;
-            bottom: -20px;
-            left: 10%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1.5s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-
-             #game-controls h1::after {
-            content: '✨';
-            position: absolute;
-            bottom: -25px;
-            left: 70%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1.5s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-
-             #game-controls h1::after {
-            content: '✨';
-            position: absolute;
-            bottom: -30px;
-            left: 40%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1.5s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-
-        .control-group {
-            margin-bottom: 2.5rem;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .control-group label {
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--secondary-color);
-            font-size: 1rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-family: 'Quicksand', sans-serif;
-        }
-
-        .control-group input[type="text"] {
-            padding: 1.2rem 1.5rem;
-            border: 2px solid rgba(255, 182, 193, 0.5);
-            border-radius: var(--border-radius-sm);
-            font-size: 1.1rem;
-            transition: var(--transition);
-            background: linear-gradient(135deg, #fff0f5, #ffeef8);
-            font-family: 'Quicksand', sans-serif;
-            box-shadow: inset 0 2px 4px rgba(183, 110, 121, 0.05);
-        }
-
-        .control-group input[type="text"]:focus {
-            border-color: var(--rose-gold);
-            box-shadow: 0 0 0 4px rgba(183, 110, 121, 0.15),
-                        inset 0 2px 4px rgba(183, 110, 121, 0.05);
-            transform: translateY(-2px);
-        }
-
-        .control-group input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 10px;
-            background: linear-gradient(90deg, 
-                        rgba(255, 182, 193, 0.3), 
-                        rgba(183, 110, 121, 0.6));
-            outline: none;
-            margin: 1.5rem 0;
-        }
-
-        .control-group input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--gradient-elegant);
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: var(--transition);
-        }
-
-        .control-group input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-            box-shadow: 0 6px 16px rgba(183, 110, 121, 0.4);
-        }
-
-        .control-group button {
-            padding: 1.2rem 2rem;
-            background: var(--gradient-elegant);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: var(--transition);
-            margin-top: 1rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            box-shadow: var(--shadow-subtle);
-            position: relative;
-            overflow: hidden;
-            font-family: 'Quicksand', sans-serif;
-        }
-
-        .control-group button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.8s ease;
-        }
-
-        .control-group button:hover::before {
-            left: 100%;
-        }
-
-        .control-group button:hover {
-            transform: translateY(-2px) scale(1.01);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .control-group button:active {
-            transform: translateY(0) scale(0.99);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        #player-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin: 2.5rem 0;
-        }
-
-        .player-card {
-            background: linear-gradient(135deg, 
-                        rgba(255, 255, 255, 0.95), 
-                        rgba(255, 240, 245, 0.9));
-            padding: 2.5rem;
-            border-radius: var(--border-radius-md);
-            text-align: center;
-            box-shadow: var(--shadow-subtle);
-            transition: var(--transition);
-            opacity: 0;
-            transform: translateY(30px) scale(0.98);
-            animation: elegantFadeIn 1s ease-out forwards;
-            border: 1px solid rgba(255, 182, 193, 0.3);
-            position: relative;
-            backdrop-filter: blur(10px);
-        }
-
-        .player-card::before {
-            content: '👑';
-            position: absolute;
-            top: -8px;
-            right: 20px;
-            font-size: 1.3rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 0.5s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-        @keyframes elegantFadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .player-card:hover {
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-4px) scale(1.01);
-            background: linear-gradient(135deg, 
-                        rgba(255, 240, 245, 0.95), 
-                        rgba(255, 228, 240, 0.9));
-        }
-
-        .player-card div {
-            font-size: 1.1rem;
-            margin: 0.8rem 0;
-            color: var(--secondary-color);
-            font-weight: 500;
-        }
-
-        #map-container {
-            width: 100%;
-            min-height: 450px;
-            border-radius: var(--border-radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-elegant);
-            margin: 0 1.5rem 1.5rem 1.5rem;
-            background: var(--card-color);
-            padding-bottom: 1.5rem;
-            border: 1px solid rgba(255, 182, 193, 0.3);
-            position: relative;
-            backdrop-filter: blur(5px);
-        }
-
-        #map-container::before {
-            content: '🗺️';
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 4.1rem;
-            z-index: 100;
-            animation: var(--sparkle-animation);
-            animation-delay: 3s;
-            filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-        }
-
-        #fun-fact {
-            background: linear-gradient(135deg, 
-                        rgba(248, 249, 255, 0.95), 
-                        rgba(255, 240, 248, 0.95));
-            border-left: 4px solid var(--secondary-color);
-            border-radius: var(--border-radius-sm);
-            padding: 2rem 2.5rem;
-            margin-top: 1.5rem;
-            font-style: italic;
-            color: #444;
-            box-shadow: var(--shadow-subtle);
-            position: relative;
-            backdrop-filter: blur(10px);
-        }
-
-        #fun-fact::before {
-            content: '💡';
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            font-size: 1.1rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 2s;
-        }
-
-        #quiz {
-            background: linear-gradient(135deg, 
-                        rgba(255, 247, 230, 0.95), 
-                        rgba(255, 238, 248, 0.95));
-            border-left: 4px solid var(--accent-color);
-            border-radius: var(--border-radius-sm);
-            padding: 2rem 2.5rem;
-            margin-top: 1.5rem;
-            color: #7b341e;
-            font-weight: 500;
-            box-shadow: var(--shadow-subtle);
-            position: relative;
-            backdrop-filter: blur(10px);
-        }
-
-        #quiz::before {
-            content: '🎯';
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            font-size: 1.1rem;
-            animation: var(--sparkle-animation);
-            animation-delay: 1s;
-        }
-
-        #quiz button {
-            background: var(--gradient-elegant);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: var(--border-radius-sm);
-            margin: 1rem 1rem 0 0;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow-subtle);
-            position: relative;
-            overflow: hidden;
-        }
-
-        #quiz button:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: var(--shadow-hover);
-        }
-
-        #quiz button:active {
-            transform: translateY(0) scale(0.98);
-        }
+      #quiz button:active {
+        transform: translateY(0) scale(0.98);
+      }
 
         #prompt {
             text-align: center;
@@ -659,639 +726,848 @@
                         rgba(221, 160, 221, 0.08));
             border-radius: var(--border-radius-sm);
             border: 1px solid rgba(255, 182, 193, 0.2);
+            -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
         }
 
-        @media (max-width: 768px) {
-            #player-info {
-                grid-template-columns: 1fr;
-            }
-
-            #game-controls {
-                padding: 2rem;
-                margin: 1rem;
-            }
-
-            #game-controls h1 {
-                font-size: 2rem;
-            }
-
-            #map-container {
-                min-height: 350px;
-                border-radius: var(--border-radius-md);
-                margin: 0 1rem 1rem 1rem;
-            }
-            
-            #map {
-                border-radius: var(--border-radius-sm);
-                height: 300px;
-                min-height: 250px;
-            }
-            
-            .control-group button {
-                font-size: 1rem;
-                padding: 1rem 1.5rem;
-            }
-            
-            body::before,
-            body::after {
-                display: none;
-            }
+        #prompt.error {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            color: #d63031;
         }
+
+        #prompt.success {
+            border-color: #55efc4;
+            background: rgba(85, 239, 196, 0.1);
+            color: #00b894;
+        }
+
+        #prompt.loading::after {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-left: 10px;
+            border: 2px solid var(--rose-gold);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .round-progress {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .round-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(183, 110, 121, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .round-dot.active {
+            background: var(--rose-gold);
+            transform: scale(1.2);
+        }
+
+        .round-dot.completed {
+            background: var(--success-color);
+        }
+
+      @media (max-width: 768px) {
+        #player-info {
+          grid-template-columns: 1fr;
+        }
+
+        #game-controls {
+          padding: 2rem;
+          margin: 1rem;
+        }
+
+        #game-controls h1 {
+          font-size: 2rem;
+        }
+
+        #map-container {
+          min-height: 350px;
+          border-radius: var(--border-radius-md);
+          margin: 0 1rem 1rem 1rem;
+        }
+
+        #map {
+          border-radius: var(--border-radius-sm);
+          height: 300px;
+          min-height: 250px;
+        }
+
+        .control-group button {
+          font-size: 1rem;
+          padding: 1rem 1.5rem;
+        }
+
+        body::before,
+        body::after {
+          display: none;
+        }
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div id="game-controls">
-        <h1>Find My Spot</h1>
+      <h1>Find My Spot</h1>
 
-        <div id="join-controls">
-            <div class="control-group">
-                <label for="game-id-input">Enter Game ID:</label>
-                <input type="text" id="game-id-input" placeholder="e.g., ABCD">
-                <button id="join-game-btn">Join Game</button>
-            </div>
+      <div id="join-controls">
+        <div class="control-group">
+          <label for="game-id-input">Enter Game ID:</label>
+          <input type="text" id="game-id-input" placeholder="e.g., ABCD" />
+          <button id="join-game-btn">Join Game</button>
         </div>
+      </div>
 
-        <div id="game-info" class="hidden">
-            <h2>Game: <span id="game-id-display"></span></h2>
-            <h3>Round: <span id="round-display"></span> / 6</h3>
-            <div id="player-info">
-                <div class="player-card" id="player1">
-                    <div id="player1-name">Player 1</div>
-                    <div id="player1-score">Score: 0</div>
-                </div>
-                <div class="player-card" id="player2">
-                    <div id="player2-name">Player 2</div>
-                    <div id="player2-score">Score: 0</div>
-                </div>
-            </div>
+      <div id="game-info" class="hidden">
+        <h2>Game: <span id="game-id-display"></span></h2>
+        <h3>Round: <span id="round-display"></span> / 6</h3>
+        <div id="player-info">
+          <div class="player-card" id="player1">
+            <div id="player1-name">Player 1</div>
+            <div id="player1-score">Score: 0</div>
+          </div>
+          <div class="player-card" id="player2">
+            <div id="player2-name">Player 2</div>
+            <div id="player2-score">Score: 0</div>
+          </div>
         </div>
+      </div>
 
-        <div id="setter-controls" class="control-group hidden">
-            <label for="radius-slider">Hint Radius: <span id="radius-value">1</span> km</label>
-            <input type="range" id="radius-slider" min="1" max="10" value="1">
-            <input type="text" id="hint-input" placeholder="Enter a hint for the guesser" style="margin: 1rem 0; width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 10px;">
-            <button id="set-location-btn" disabled>Set Location</button>
-        </div>
+      <div id="setter-controls" class="control-group hidden">
+        <label for="radius-slider"
+          >Hint Radius: <span id="radius-value">1</span> km</label
+        >
+        <input type="range" id="radius-slider" min="1" max="10" value="1" />
+        <input
+          type="text"
+          id="hint-input"
+          placeholder="Enter a hint for the guesser"
+          style="
+            margin: 1rem 0;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 10px;
+          "
+        />
+        <button id="set-location-btn" disabled>Set Location</button>
+      </div>
 
-        <div id="prompt">Welcome! Join a game to start.</div>
+      <div id="prompt">Welcome! Join a game to start.</div>
     </div>
 
     <div id="map-container">
-        <div id="map"></div>
-        <div id="street-view"></div>
-        <div id="address-info"></div>
-        <div id="country-flag"></div>
-        <div id="fun-fact"></div>
-        <div id="quiz"></div>
+      <div id="map"></div>
+      <div id="street-view"></div>
+      <div id="address-info"></div>
+      <div id="country-flag"></div>
+      <div id="fun-fact"></div>
+      <div id="quiz"></div>
     </div>
 
     <script>
-        // Ensure map is always initialized for all players
-        window.addEventListener('DOMContentLoaded', () => {
-            if (!window._leaflet_map_instance) {
-                initializeMap();
-            }
-        });
-
-        // --- Game State and Global Variables ---
-        let socket;
-        let map;
-        let gameState = {
-            gameId: null,
-            playerId: null,
-            players: {},
-            round: 0,
-            maxRounds: 6,
-            phase: 'INIT', // INIT, WAITING, SETTING, GUESSING, ROUND_END, GAME_END
-            role: null, // Setter, Guesser
-            setterId: null,
-            guesserId: null,
-            hint: null,
-            attemptsLeft: 3,
-        };
-
-        // Map layers
-        let tempMarker, hintCircle, guessMarkers = [], actualMarker, resultLine;
-        
-        // --- DOM Elements ---
-        const joinControls = document.getElementById('join-controls');
-        const gameInfo = document.getElementById('game-info');
-        const setterControls = document.getElementById('setter-controls');
-        const joinGameBtn = document.getElementById('join-game-btn');
-        const setLocationBtn = document.getElementById('set-location-btn');
-        const gameIdInput = document.getElementById('game-id-input');
-        const promptEl = document.getElementById('prompt');
-
-        // --- Event Listeners ---
-        window.addEventListener('DOMContentLoaded', initializeMap);
-        joinGameBtn.addEventListener('click', joinGame);
-        setLocationBtn.addEventListener('click', confirmSetLocation);
-        document.getElementById('radius-slider').addEventListener('input', (e) => {
-            document.getElementById('radius-value').textContent = e.target.value;
-        });
-
-        // --- Initialization ---
-        function initializeMap() {
-            try {
-                // Ensure the map container is empty before initializing
-                const mapDiv = document.getElementById('map');
-                mapDiv.innerHTML = '';
-                if (window._leaflet_map_instance) {
-                    window._leaflet_map_instance.remove();
-                    window._leaflet_map_instance = null;
-                }
-            map = L.map('map').setView([20, 0], 2); // World view
-                window._leaflet_map_instance = map;
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-            map.on('click', onMapClick);
-                mapDiv.classList.remove('map-error');
-            } catch (e) {
-                document.getElementById('map').innerHTML = '<div class="map-error">Map failed to load. Please refresh the page.</div>';
-                console.error('Map initialization error:', e);
-            }
+      // Ensure map is always initialized for all players
+      window.addEventListener("DOMContentLoaded", () => {
+        if (!window._leaflet_map_instance) {
+          initializeMap();
         }
-        
-        function joinGame() {
-            const gameId = gameIdInput.value.trim().toUpperCase();
+      });
+
+      // --- Game State and Global Variables ---
+      let socket;
+      let map;
+      let gameState = {
+        gameId: null,
+        playerId: null,
+        players: {},
+        round: 0,
+        maxRounds: 6,
+        phase: "INIT", // INIT, WAITING, SETTING, GUESSING, ROUND_END, GAME_END
+        role: null, // Setter, Guesser
+        setterId: null,
+        guesserId: null,
+        hint: null,
+        attemptsLeft: 3,
+      };
+
+      // Map layers
+      let tempMarker,
+        hintCircle,
+        guessMarkers = [],
+        actualMarker,
+        resultLine;
+
+      // --- DOM Elements ---
+      const joinControls = document.getElementById("join-controls");
+      const gameInfo = document.getElementById("game-info");
+      const setterControls = document.getElementById("setter-controls");
+      const joinGameBtn = document.getElementById("join-game-btn");
+      const setLocationBtn = document.getElementById("set-location-btn");
+      const gameIdInput = document.getElementById("game-id-input");
+      const promptEl = document.getElementById("prompt");
+
+      // --- Event Listeners ---
+      window.addEventListener("DOMContentLoaded", initializeMap);
+      joinGameBtn.addEventListener("click", joinGame);
+      setLocationBtn.addEventListener("click", confirmSetLocation);
+      document
+        .getElementById("radius-slider")
+        .addEventListener("input", (e) => {
+          document.getElementById("radius-value").textContent = e.target.value;
+        });
+
+      // --- Initialization ---
+      function initializeMap() {
+        try {
+          // Ensure the map container is empty before initializing
+          const mapDiv = document.getElementById("map");
+          mapDiv.innerHTML = "";
+          if (window._leaflet_map_instance) {
+            window._leaflet_map_instance.remove();
+            window._leaflet_map_instance = null;
+          }
+          map = L.map("map").setView([20, 0], 2); // World view
+          window._leaflet_map_instance = map;
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution:
+              '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          }).addTo(map);
+          map.on("click", debounce(onMapClick, 200));
+          mapDiv.classList.remove("map-error");
+        } catch (e) {
+          document.getElementById("map").innerHTML =
+            '<div class="map-error">Map failed to load. Please refresh the page.</div>';
+          console.error("Map initialization error:", e);
+        }
+      }
+
+      function joinGame() {
+        const gameId = gameIdInput.value.trim().toUpperCase();
             if (!gameId) {
-                showPrompt("Please enter a Game ID.", true);
+                showPrompt("Please enter a Game ID.", 'error');
                 return;
             }
 
-            // Connect to server (replace with your server URL in a real app)
-            if (!socket || !socket.connected) {
-                socket = io(); // Connects to the server that serves the page
-                setupSocketListeners();
-            }
-            
-            lockUI(true);
-            showPrompt("Joining game...");
-            socket.emit('join_game', { gameId });
+        // Connect to server (replace with your server URL in a real app)
+        if (!socket || !socket.connected) {
+          socket = io(); // Connects to the server that serves the page
+          setupSocketListeners();
         }
 
-        // --- Socket.IO Event Handlers ---
-        function setupSocketListeners() {
-            socket.on('connect', () => {
-                console.log("Connected to server with ID:", socket.id);
-                gameState.playerId = socket.id;
-            });
+        lockUI(true);
+            showPrompt("Connecting to the game world...", 'loading');
+            socket.emit('join_game', { gameId });
+      }
 
-            socket.on('game_state', (serverState) => {
-                console.log('Received game_state:', serverState);
-                Object.assign(gameState, serverState);
-                gameState.playerId = socket.id; // Ensure our player ID is always correct
-                
-                // Determine player's role
-                if (gameState.setterId === gameState.playerId) {
-                    gameState.role = 'Setter';
-                } else if (gameState.guesserId === gameState.playerId) {
-                    gameState.role = 'Guesser';
-                } else {
-                    gameState.role = 'Spectator';
-                }
-                
-                updateUI();
-                lockUI(false);
-            });
+      // --- Socket.IO Event Handlers ---
+      function setupSocketListeners() {
+        socket.on("connect", () => {
+          console.log("Connected to server with ID:", socket.id);
+          gameState.playerId = socket.id;
+        });
 
-            socket.on('round_end', (data) => {
-                console.log('Round end:', data);
-                gameState.phase = 'ROUND_END';
-                showActualLocation(data.actualLocation, data.lastGuess);
-                showPrompt(`Round over! The spot was ${data.distance.toFixed(2)}km away. ${data.roundPoints} points awarded.`);
-                showFunFact(data.actualLocation[0], data.actualLocation[1]);
-                fetchCountryAndQuizAndFlag(data.actualLocation[0], data.actualLocation[1]);
-                // Server will send a new 'game_state' for the next round after a delay
-            });
+        socket.on("game_state", (serverState) => {
+          console.log("Received game_state:", serverState);
+          Object.assign(gameState, serverState);
+          gameState.playerId = socket.id; // Ensure our player ID is always correct
 
-            socket.on('guess_result', (data) => {
-                console.log('Guess result:', data);
-                showGuessMarker(data.guessLocation);
-                gameState.attemptsLeft = data.attemptsLeft;
-                showPrompt(`Your guess is ${data.distance.toFixed(2)}km away. You have ${data.attemptsLeft} attempts left.`);
-                
-                if (data.newHintRadius) {
-                    showHintEllipse(gameState.hint.center, data.newHintRadius, data.newHintRadius, data.newHintRotation);
-                }
-                lockUI(false);
-            });
-            
-            socket.on('game_end', (data) => {
-                console.log('Game end:', data);
-                gameState.phase = 'GAME_END';
-                updateUI(); // To update final scores
-                const winner = data.winnerId ? gameState.players[data.winnerId].name : 'No one';
-                const message = data.isDraw ? "It's a draw!" : `${winner} wins the game!`;
-                showPrompt(message);
-                lockUI(true); // Lock everything except starting a new game
-            });
+          // Determine player's role
+          if (gameState.setterId === gameState.playerId) {
+            gameState.role = "Setter";
+          } else if (gameState.guesserId === gameState.playerId) {
+            gameState.role = "Guesser";
+          } else {
+            gameState.role = "Spectator";
+          }
+
+          updateUI();
+          lockUI(false);
+        });
+
+        socket.on("round_end", (data) => {
+          console.log("Round end:", data);
+          gameState.phase = "ROUND_END";
+          showActualLocation(data.actualLocation, data.lastGuess);
+          showPrompt(`Round complete! The secret spot was ${data.distance.toFixed(2)}km away. ${data.roundPoints} points awarded.`, 'success');
+          showFunFact(data.actualLocation[0], data.actualLocation[1]);
+          fetchCountryAndQuizAndFlag(
+            data.actualLocation[0],
+            data.actualLocation[1],
+          );
+          // Server will send a new 'game_state' for the next round after a delay
+        });
+
+        socket.on("guess_result", (data) => {
+          console.log("Guess result:", data);
+          showGuessMarker(data.guessLocation);
+          gameState.attemptsLeft = data.attemptsLeft;
+          showPrompt(`Your guess is ${data.distance.toFixed(2)}km away. You have ${data.attemptsLeft} attempts left.`, 'info');
+
+          if (data.newHintRadius) {
+            showHintEllipse(
+              gameState.hint.center,
+              data.newHintRadius,
+              data.newHintRadius,
+              data.newHintRotation,
+            );
+          }
+          lockUI(false);
+        });
+
+        socket.on("game_end", (data) => {
+          console.log("Game end:", data);
+          gameState.phase = "GAME_END";
+          updateUI(); // To update final scores
+          const winner = data.winnerId
+            ? gameState.players[data.winnerId].name
+            : "No one";
+          const message = data.isDraw
+            ? "It's a draw!"
+            : `${winner} wins the game!`;
+          showPrompt(message);
+          lockUI(true); // Lock everything except starting a new game
+        });
 
             socket.on('error_message', (data) => {
-                showPrompt(data.message, true);
-                lockUI(false);
-                // If the error is critical, maybe reset the UI to the join screen
-                if(socket) socket.disconnect();
-                resetToJoinScreen();
-            });
+                showPrompt(data.message, 'error');
+          lockUI(false);
+          // If the error is critical, maybe reset the UI to the join screen
+          if (socket) socket.disconnect();
+          resetToJoinScreen();
+        });
 
-            socket.on('set_location', ({ gameId, location, radius, hint }) => {
-                const game = games[gameId];
-                if (!game || socket.id !== game.setterId || game.phase !== 'SETTING') return;
-                
-                game.actualLocation = { lat: location[0], lon: location[1] };
-                game.hint = { center: location, radius: radius, message: hint }; // <-- store the hint message!
-                game.phase = 'GUESSING';
-                
-                console.log(`[${gameId}] Location set by ${socket.id} with hint: ${hint}`);
-                emitGameState(gameId);
-            });
-        }
-        
-        // --- Game Logic ---
-        function onMapClick(e) {
-            const { lat, lng } = e.latlng;
+        socket.on("set_location", ({ gameId, location, radius, hint }) => {
+          const game = games[gameId];
+          if (!game || socket.id !== game.setterId || game.phase !== "SETTING")
+            return;
 
-            if (gameState.phase === 'SETTING' && gameState.role === 'Setter') {
-                if (tempMarker) map.removeLayer(tempMarker);
-                tempMarker = L.marker([lat, lng]).addTo(map);
-                setLocationBtn.disabled = false;
-                showPrompt("You've selected a spot. Click 'Set Location' to confirm.");
-            }
+          game.actualLocation = { lat: location[0], lon: location[1] };
+          game.hint = { center: location, radius: radius, message: hint }; // <-- store the hint message!
+          game.phase = "GUESSING";
 
-            if (gameState.phase === 'GUESSING' && gameState.role === 'Guesser' && gameState.attemptsLeft > 0) {
-                lockUI(true);
-                showPrompt("Submitting your guess...");
-                socket.emit('make_guess', { gameId: gameState.gameId, location: [lat, lng] });
-            }
+          console.log(
+            `[${gameId}] Location set by ${socket.id} with hint: ${hint}`,
+          );
+          emitGameState(gameId);
+        });
+      }
+
+      // --- Game Logic ---
+      function onMapClick(e) {
+        const { lat, lng } = e.latlng;
+
+        if (gameState.phase === "SETTING" && gameState.role === "Setter") {
+          if (tempMarker) map.removeLayer(tempMarker);
+          tempMarker = L.marker([lat, lng]).addTo(map);
+          setLocationBtn.disabled = false;
+          showPrompt("Spot selected. Click 'Set Location' to lock it in.", 'info');
         }
 
-        function confirmSetLocation() {
-            if (!tempMarker) return;
-            lockUI(true);
-            const location = tempMarker.getLatLng();
-            const radius = document.getElementById('radius-slider').value * 1000; // in meters
-            const hint = document.getElementById('hint-input').value.trim();
+        if (
+          gameState.phase === "GUESSING" &&
+          gameState.role === "Guesser" &&
+          gameState.attemptsLeft > 0
+        ) {
+          lockUI(true);
+                showPrompt("Calculated guess commencing...", 'loading');
+          socket.emit("make_guess", {
+            gameId: gameState.gameId,
+            location: [lat, lng],
+          });
+        }
+      }
 
-            socket.emit('set_location', {
-                gameId: gameState.gameId,
-                location: [location.lat, location.lng],
-                radius: radius,
-                hint: hint
-            });
-            showPrompt("Location set! Waiting for the guesser...");
+      function confirmSetLocation() {
+        if (!tempMarker) return;
+        lockUI(true);
+        const location = tempMarker.getLatLng();
+        const radius = document.getElementById("radius-slider").value * 1000; // in meters
+        const hint = document.getElementById("hint-input").value.trim();
+
+        socket.emit("set_location", {
+          gameId: gameState.gameId,
+          location: [location.lat, location.lng],
+          radius: radius,
+          hint: hint,
+        });
+        showPrompt("Location secured! Waiting for the explorer to find it...", 'success');
+      }
+
+      // --- UI Update Functions ---
+      function updateUI() {
+        console.log(
+          "Updating UI for phase:",
+          gameState.phase,
+          "and role:",
+          gameState.role,
+        );
+        clearMapLayers();
+
+        // Show/hide main panels
+        const inGame = gameState.gameId && gameState.phase !== "INIT";
+        joinControls.classList.toggle("hidden", inGame);
+        gameInfo.classList.toggle("hidden", !inGame);
+
+        if (!inGame) {
+          resetToJoinScreen();
+          return;
         }
 
-        // --- UI Update Functions ---
-        function updateUI() {
-            console.log("Updating UI for phase:", gameState.phase, "and role:", gameState.role);
-            clearMapLayers();
-            
-            // Show/hide main panels
-            const inGame = gameState.gameId && gameState.phase !== 'INIT';
-            joinControls.classList.toggle('hidden', inGame);
-            gameInfo.classList.toggle('hidden', !inGame);
+        // Update game info
+        document.getElementById("game-id-display").textContent =
+          gameState.gameId;
+        document.getElementById("round-display").textContent = gameState.round;
 
-            if (!inGame) {
-                resetToJoinScreen();
-                return;
-            }
-            
-            // Update game info
-            document.getElementById('game-id-display').textContent = gameState.gameId;
-            document.getElementById('round-display').textContent = gameState.round;
-            
-            // Update player cards
-            const playerIds = Object.keys(gameState.players);
-            if (playerIds.length > 0) {
-                const p1 = gameState.players[playerIds[0]];
-                document.getElementById('player1-name').textContent = p1.name;
-                document.getElementById('player1-score').textContent = `Score: ${p1.score}`;
-                document.getElementById('player1').classList.toggle('active', gameState.setterId === playerIds[0]);
-            }
-            if (playerIds.length > 1) {
-                const p2 = gameState.players[playerIds[1]];
-                document.getElementById('player2-name').textContent = p2.name;
-                document.getElementById('player2-score').textContent = `Score: ${p2.score}`;
-                document.getElementById('player2').classList.toggle('active', gameState.setterId === playerIds[1]);
-                document.getElementById('player2').classList.remove('hidden');
-            } else {
-                 document.getElementById('player2').classList.add('hidden');
-            }
+        // Update player cards
+        const playerIds = Object.keys(gameState.players);
+        if (playerIds.length > 0) {
+          const p1 = gameState.players[playerIds[0]];
+          document.getElementById("player1-name").textContent = p1.name;
+          document.getElementById("player1-score").textContent =
+            `Score: ${p1.score}`;
+          document
+            .getElementById("player1")
+            .classList.toggle("active", gameState.setterId === playerIds[0]);
+        }
+        if (playerIds.length > 1) {
+          const p2 = gameState.players[playerIds[1]];
+          document.getElementById("player2-name").textContent = p2.name;
+          document.getElementById("player2-score").textContent =
+            `Score: ${p2.score}`;
+          document
+            .getElementById("player2")
+            .classList.toggle("active", gameState.setterId === playerIds[1]);
+          document.getElementById("player2").classList.remove("hidden");
+        } else {
+          document.getElementById("player2").classList.add("hidden");
+        }
 
-            // Phase-specific UI
-            setterControls.classList.add('hidden');
+        // Phase-specific UI
+        setterControls.classList.add("hidden");
 
-            switch (gameState.phase) {
+        switch (gameState.phase) {
                 case 'WAITING':
-                    showPrompt('Waiting for another player to join...');
+                    showPrompt('Waiting for an opponent to join the adventure...', 'loading');
                     break;
                 case 'SETTING':
                     if (gameState.role === 'Setter') {
                         setterControls.classList.remove('hidden');
                         setLocationBtn.disabled = true;
-                        showPrompt('Click on the map to choose a secret location.');
+                        showPrompt('Choose a secret location to challenge your opponent.', 'info');
                     } else {
-                        showPrompt(`Waiting for ${gameState.players[gameState.setterId].name} to set a location...`);
+                        showPrompt(`${gameState.players[gameState.setterId].name} is scouting a location...`, 'loading');
                     }
+                    updateRoundProgress(gameState.round, gameState.maxRounds);
                     break;
-                case 'GUESSING':
-                    if (gameState.hint && gameState.hint.radiusX && gameState.hint.radiusY && typeof gameState.hint.rotation === 'number') {
-                        showHintEllipse(gameState.hint.center, gameState.hint.radiusX, gameState.hint.radiusY, gameState.hint.rotation);
-                    }
-                    if (gameState.role === 'Guesser') {
-                        if (gameState.hint && gameState.hint.message) {
-                            showPrompt(`Hint: ${gameState.hint.message} | Click inside the ellipse to make your guess! Attempts left: ${gameState.attemptsLeft}`);
-                        } else {
-                            showPrompt(`Click inside the ellipse to make your guess! Attempts left: ${gameState.attemptsLeft}`);
-                        }
-                    } else {
-                        showPrompt(`Waiting for ${gameState.players[gameState.guesserId].name} to guess...`);
-                    }
-                    break;
-                case 'ROUND_END':
-                    // Prompt is handled by the round_end event handler
-                    break;
-                case 'GAME_END':
-                    // Prompt is handled by the game_end event handler
-                    break;
+          case "GUESSING":
+            if (
+              gameState.hint &&
+              gameState.hint.radiusX &&
+              gameState.hint.radiusY &&
+              typeof gameState.hint.rotation === "number"
+            ) {
+              showHintEllipse(
+                gameState.hint.center,
+                gameState.hint.radiusX,
+                gameState.hint.radiusY,
+                gameState.hint.rotation,
+              );
             }
-        }
-        
-        function resetToJoinScreen() {
-            joinControls.classList.remove('hidden');
-            gameInfo.classList.add('hidden');
-            setterControls.classList.add('hidden');
-            lockUI(false);
-            joinGameBtn.disabled = false;
-        }
-
-        function lockUI(lock) {
-            joinGameBtn.disabled = lock;
-            setLocationBtn.disabled = lock;
-            // A locked map should not be clickable for game actions
-            if (lock) map.off('click', onMapClick);
-            else map.on('click', onMapClick);
-        }
-
-        function showPrompt(message, isError = false) {
-            promptEl.textContent = message;
-            promptEl.classList.toggle('error', isError);
-        }
-        
-        // --- Map Helper Functions ---
-        function clearMapLayers() {
-            if (tempMarker) map.removeLayer(tempMarker);
-            if (hintCircle) map.removeLayer(hintCircle);
-            if (actualMarker) map.removeLayer(actualMarker);
-            if (resultLine) map.removeLayer(resultLine);
-            guessMarkers.forEach(m => map.removeLayer(m));
-            
-            tempMarker = null;
-            hintCircle = null;
-            actualMarker = null;
-            resultLine = null;
-            guessMarkers = [];
-        }
-
-        function showHintEllipse(center, radiusX, radiusY, rotation = 0) {
-            // radiusX and radiusY in meters
-            const points = [];
-            const numPoints = 60; // smoothness
-            for (let i = 0; i < numPoints; i++) {
-                const angle = (i / numPoints) * 2 * Math.PI;
-                // Apply rotation
-                const x = Math.cos(angle) * radiusX;
-                const y = Math.sin(angle) * radiusY;
-                const rotatedX = x * Math.cos(rotation) - y * Math.sin(rotation);
-                const rotatedY = x * Math.sin(rotation) + y * Math.cos(rotation);
-                // Convert meters to lat/lng
-                const dx = rotatedX / 111320; // meters per degree longitude at equator
-                const dy = rotatedY / 110540; // meters per degree latitude
-                points.push([center[0] + dy, center[1] + dx]);
-            }
-            if (window.hintEllipse) map.removeLayer(window.hintEllipse);
-            window.hintEllipse = L.polygon(points, {
-                color: 'blue',
-                fillColor: '#30f',
-                fillOpacity: 0.2
-            }).addTo(map);
-            map.fitBounds(window.hintEllipse.getBounds());
-        }
-
-        function showGuessMarker(location) {
-             const guessMarker = L.marker(location, {
-                icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                })
-            }).addTo(map);
-            guessMarkers.push(guessMarker);
-        }
-        
-        function showActualLocation(actualLoc, guessLoc) {
-            if (actualMarker) map.removeLayer(actualMarker);
-            actualMarker = L.marker(actualLoc, {
-                 icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                })
-            }).addTo(map);
-            
-            if (guessLoc) {
-                // Find the last guess marker to draw a line from
-                const lastGuessMarker = guessMarkers[guessMarkers.length - 1];
-                if (lastGuessMarker) {
-                    const linePoints = [actualLoc, lastGuessMarker.getLatLng()];
-                    resultLine = L.polyline(linePoints, { color: 'red' }).addTo(map);
-                    map.fitBounds(resultLine.getBounds().pad(0.2));
-                }
+            if (gameState.role === "Guesser") {
+              if (gameState.hint && gameState.hint.message) {
+                showPrompt(
+                  `Hint: ${gameState.hint.message} | Click inside the ellipse to make your guess! Attempts left: ${gameState.attemptsLeft}`,
+                );
+              } else {
+                showPrompt(
+                  `Click inside the ellipse to make your guess! Attempts left: ${gameState.attemptsLeft}`,
+                );
+              }
             } else {
-                 map.setView(actualLoc, 13);
+              showPrompt(
+                `Waiting for ${gameState.players[gameState.guesserId].name} to guess...`,
+              );
             }
-            // Show street view and address after round ends
-            showMapillaryPhoto(actualLoc[0], actualLoc[1]);
-            showAddress(actualLoc[0], actualLoc[1]);
+            break;
+          case "ROUND_END":
+            // Prompt is handled by the round_end event handler
+            break;
+          case "GAME_END":
+            // Prompt is handled by the game_end event handler
+            break;
+        }
+      }
+
+      function resetToJoinScreen() {
+        joinControls.classList.remove("hidden");
+        gameInfo.classList.add("hidden");
+        setterControls.classList.add("hidden");
+        lockUI(false);
+        joinGameBtn.disabled = false;
+      }
+
+      function lockUI(lock) {
+        joinGameBtn.disabled = lock;
+        setLocationBtn.disabled = lock;
+        // A locked map should not be clickable for game actions
+        if (lock) map.off("click");
+        else map.on("click", debounce(onMapClick, 200));
+      }
+
+        function showPrompt(message, type = 'info') {
+            promptEl.textContent = message;
+            promptEl.className = ''; // Reset classes
+            if (type !== 'info') {
+                promptEl.classList.add(type);
+            }
+        }
+        
+         function updateRoundProgress(currentRound, maxRounds) {
+            let container = document.getElementById('round-progress-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'round-progress-container';
+                container.className = 'round-progress';
+                document.querySelector('#game-controls h1').after(container);
+            }
+            
+            container.innerHTML = '';
+            for (let i = 1; i <= maxRounds; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'round-dot';
+                if (i < currentRound) dot.classList.add('completed');
+                else if (i === currentRound) dot.classList.add('active');
+                container.appendChild(dot);
+            }
         }
 
-        // Add Mapillary and OSM helpers
+      // --- Map Helper Functions ---
+      function clearMapLayers() {
+        if (tempMarker) map.removeLayer(tempMarker);
+        if (hintCircle) map.removeLayer(hintCircle);
+        if (actualMarker) map.removeLayer(actualMarker);
+        if (resultLine) map.removeLayer(resultLine);
+        guessMarkers.forEach((m) => map.removeLayer(m));
+
+        tempMarker = null;
+        hintCircle = null;
+        actualMarker = null;
+        resultLine = null;
+        guessMarkers = [];
+      }
+
+      function showHintEllipse(center, radiusX, radiusY, rotation = 0) {
+        // radiusX and radiusY in meters
+        const points = [];
+        const numPoints = 60; // smoothness
+        for (let i = 0; i < numPoints; i++) {
+          const angle = (i / numPoints) * 2 * Math.PI;
+          // Apply rotation
+          const x = Math.cos(angle) * radiusX;
+          const y = Math.sin(angle) * radiusY;
+          const rotatedX = x * Math.cos(rotation) - y * Math.sin(rotation);
+          const rotatedY = x * Math.sin(rotation) + y * Math.cos(rotation);
+          // Convert meters to lat/lng
+          const dx = rotatedX / 111320; // meters per degree longitude at equator
+          const dy = rotatedY / 110540; // meters per degree latitude
+          points.push([center[0] + dy, center[1] + dx]);
+        }
+        if (window.hintEllipse) map.removeLayer(window.hintEllipse);
+        window.hintEllipse = L.polygon(points, {
+          color: "blue",
+          fillColor: "#30f",
+          fillOpacity: 0.2,
+        }).addTo(map);
+        map.fitBounds(window.hintEllipse.getBounds());
+      }
+
+      function showGuessMarker(location) {
+        const guessMarker = L.marker(location, {
+          icon: L.icon({
+            iconUrl:
+              "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+          }),
+        }).addTo(map);
+        guessMarkers.push(guessMarker);
+      }
+
+      function showActualLocation(actualLoc, guessLoc) {
+        if (actualMarker) map.removeLayer(actualMarker);
+        actualMarker = L.marker(actualLoc, {
+          icon: L.icon({
+            iconUrl:
+              "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+          }),
+        }).addTo(map);
+
+        if (guessLoc) {
+          // Find the last guess marker to draw a line from
+          const lastGuessMarker = guessMarkers[guessMarkers.length - 1];
+          if (lastGuessMarker) {
+            const linePoints = [actualLoc, lastGuessMarker.getLatLng()];
+            resultLine = L.polyline(linePoints, { color: "red" }).addTo(map);
+            map.fitBounds(resultLine.getBounds().pad(0.2));
+          }
+        } else {
+          map.setView(actualLoc, 13);
+        }
+        // Show street view and address after round ends
+        showMapillaryPhoto(actualLoc[0], actualLoc[1]);
+        showAddress(actualLoc[0], actualLoc[1]);
+      }
+
+      // Add Mapillary and OSM helpers
         async function showMapillaryPhoto(lat, lng) {
-            const token = 'YOUR_MAPILLARY_CLIENT_TOKEN'; // <-- Insert your Mapillary token here
-            if (!token || token === 'YOUR_MAPILLARY_CLIENT_TOKEN') {
-                document.getElementById('street-view').innerHTML = '<div style="margin-top:1rem;">No street photo available (token missing).</div>';
-                return;
-            }
-            const url = `https://graph.mapillary.com/images?access_token=${token}&fields=id,thumb_1024_url&closeto=${lng},${lat}&limit=1`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.data && data.data.length > 0) {
-                    const imgUrl = data.data[0].thumb_1024_url;
-                    document.getElementById('street-view').innerHTML = `<img src="${imgUrl}" alt="Mapillary Street Photo" style="width:100%;border-radius:12px;margin-top:1rem;">`;
-                } else {
-                    document.getElementById('street-view').innerHTML = '<div style="margin-top:1rem;">No street photo available.</div>';
-                }
-            } catch {
-                document.getElementById('street-view').innerHTML = '<div style="margin-top:1rem;">No street photo available.</div>';
-            }
+            // Since we don't have a Mapillary token, we'll provide a direct link to Google Maps Street View
+            const streetViewContainer = document.getElementById('street-view');
+            const googleMapsUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+            
+            streetViewContainer.innerHTML = `
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <a href="${googleMapsUrl}" target="_blank" class="btn" style="text-decoration: none; display: inline-block;">
+                        Open in Google Street View 🌏
+                    </a>
+                </div>
+            `;
         }
 
-        async function showAddress(lat, lng) {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                document.getElementById('address-info').textContent = data.display_name || 'Unknown location';
-            } catch {
-                document.getElementById('address-info').textContent = 'Unknown location';
-            }
+      async function showAddress(lat, lng) {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          document.getElementById("address-info").textContent =
+            data.display_name || "Unknown location";
+        } catch {
+          document.getElementById("address-info").textContent =
+            "Unknown location";
         }
+      }
 
-        async function showFunFact(lat, lng) {
-            // First, reverse geocode to get the place name
-            const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-            try {
-                const res = await fetch(nominatimUrl);
-                const data = await res.json();
-                let place = data.address.city || data.address.town || data.address.village || data.address.state || data.address.country;
-                if (!place) {
-                    document.getElementById('fun-fact').textContent = 'No fun fact found for this location.';
-                    return;
-                }
-                // Now fetch from Wikipedia
-                const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(place)}`;
-                console.log('Fetching Wikipedia for:', place);
-                const wikiRes = await fetch(wikiUrl);
-                const wikiData = await wikiRes.json();
-                if (wikiData.extract) {
-                    document.getElementById('fun-fact').innerHTML = `<b>Fun Fact:</b> ${wikiData.extract} <a href='${wikiData.content_urls.desktop.page}' target='_blank'>Read more</a>`;
-                } else {
-                    document.getElementById('fun-fact').textContent = 'No fun fact found for this location.';
-                }
-            } catch (e) {
-                console.log('Wikipedia fetch error:', e);
-                document.getElementById('fun-fact').textContent = 'No fun fact found for this location.';
-            }
+      async function showFunFact(lat, lng) {
+        // First, reverse geocode to get the place name
+        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        try {
+          const res = await fetch(nominatimUrl);
+          const data = await res.json();
+          let place =
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            data.address.state ||
+            data.address.country;
+          if (!place) {
+            document.getElementById("fun-fact").textContent =
+              "No fun fact found for this location.";
+            return;
+          }
+          // Now fetch from Wikipedia
+          const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(place)}`;
+          console.log("Fetching Wikipedia for:", place);
+          const wikiRes = await fetch(wikiUrl);
+          const wikiData = await wikiRes.json();
+          if (wikiData.extract) {
+            document.getElementById("fun-fact").innerHTML =
+              `<b>Fun Fact:</b> ${wikiData.extract} <a href='${wikiData.content_urls.desktop.page}' target='_blank'>Read more</a>`;
+          } else {
+            document.getElementById("fun-fact").textContent =
+              "No fun fact found for this location.";
+          }
+        } catch (e) {
+          console.log("Wikipedia fetch error:", e);
+          document.getElementById("fun-fact").textContent =
+            "No fun fact found for this location.";
         }
+      }
 
-        async function fetchCountryAndQuizAndFlag(lat, lng) {
-            // Reverse geocode to get the country
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                const country = data.address.country;
-                if (country) {
-                    getCountryFlag(country);
-                    if (Math.random() < 0.7) { // 70% chance to show quiz
-                        showQuiz(country);
-                    } else {
-                        document.getElementById('quiz').innerHTML = '';
-                    }
-                } else {
-                    document.getElementById('country-flag').innerHTML = '';
-                    document.getElementById('quiz').innerHTML = '';
-                }
-            } catch {
-                document.getElementById('country-flag').innerHTML = '';
-                document.getElementById('quiz').innerHTML = '';
+      async function fetchCountryAndQuizAndFlag(lat, lng) {
+        // Reverse geocode to get the country
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          const country = data.address.country;
+          if (country) {
+            getCountryFlag(country);
+            if (Math.random() < 0.7) {
+              // 70% chance to show quiz
+              showQuiz(country);
+            } else {
+              document.getElementById("quiz").innerHTML = "";
             }
+          } else {
+            document.getElementById("country-flag").innerHTML = "";
+            document.getElementById("quiz").innerHTML = "";
+          }
+        } catch {
+          document.getElementById("country-flag").innerHTML = "";
+          document.getElementById("quiz").innerHTML = "";
         }
+      }
 
-        async function getCountryFlag(country) {
-            // Normalize common country names for REST Countries API
-            const countryMap = {
-                'United States of America': 'United States',
-                'Russia': 'Russian Federation',
-                'South Korea': 'Korea (Republic of)',
-                'North Korea': 'Korea (Democratic People\'s Republic of)',
-                'Iran': 'Iran (Islamic Republic of)',
-                'Vietnam': 'Viet Nam',
-                'Syria': 'Syrian Arab Republic',
-                'Czechia': 'Czech Republic',
-                'Moldova': 'Moldova (Republic of)',
-                'Venezuela': 'Venezuela (Bolivarian Republic of)',
-                'Tanzania': 'Tanzania, United Republic of',
-                'Bolivia': 'Bolivia (Plurinational State of)',
-                'Laos': 'Lao People\'s Democratic Republic',
-                'Brunei': 'Brunei Darussalam',
-                'Palestine': 'Palestine, State of',
-                'Libya': 'Libyan Arab Jamahiriya',
-                'Congo': 'Congo (Republic of the)',
-                'Democratic Republic of the Congo': 'Congo (Democratic Republic of the)',
-                'Ivory Coast': 'Côte d\'Ivoire',
-                'Cape Verde': 'Cabo Verde',
-                'East Timor': 'Timor-Leste',
-                'Swaziland': 'Eswatini',
-                'Burma': 'Myanmar',
-                'Macedonia': 'North Macedonia',
-                'UK': 'United Kingdom',
-                'UAE': 'United Arab Emirates',
-                'Bahamas': 'Bahamas',
-                'Gambia': 'Gambia',
-                'The Gambia': 'Gambia',
-                'Republic of the Congo': 'Congo',
-                'Republic of Korea': 'Korea (Republic of)',
-                'Republic of Moldova': 'Moldova (Republic of)',
-                'Slovak Republic': 'Slovakia',
-                'Syria': 'Syrian Arab Republic',
-                'Taiwan': 'Taiwan (Province of China)',
-                'Hong Kong': 'Hong Kong',
-                'Macau': 'Macao',
-            };
-            const lookup = countryMap[country] || country;
-            const url = `https://restcountries.com/v3.1/name/${encodeURIComponent(lookup)}`;
-            try {
-                console.log('Fetching flag for:', lookup);
-                const res = await fetch(url);
-                const data = await res.json();
-                const flagUrl = data[0]?.flags?.svg || '';
-                if (flagUrl) {
-                    document.getElementById('country-flag').innerHTML = `<img src="${flagUrl}" alt="${country} flag" style="height:48px;vertical-align:middle;margin-right:8px;"> <span style="font-size:1.1em;font-weight:600;">${country}</span>`;
-                } else {
-                    console.log('Country for flag (not found):', country, 'API response:', data);
-                    document.getElementById('country-flag').innerHTML = '<span style="color:#888;">Flag not found for this country.</span>';
-                }
-            } catch (e) {
-                console.log('Country for flag (error):', country, e);
-                document.getElementById('country-flag').innerHTML = '<span style="color:#888;">Flag not found for this country.</span>';
-            }
+      async function getCountryFlag(country) {
+        // Normalize common country names for REST Countries API
+        const countryMap = {
+          "United States of America": "United States",
+          Russia: "Russian Federation",
+          "South Korea": "Korea (Republic of)",
+          "North Korea": "Korea (Democratic People's Republic of)",
+          Iran: "Iran (Islamic Republic of)",
+          Vietnam: "Viet Nam",
+          Syria: "Syrian Arab Republic",
+          Czechia: "Czech Republic",
+          Moldova: "Moldova (Republic of)",
+          Venezuela: "Venezuela (Bolivarian Republic of)",
+          Tanzania: "Tanzania, United Republic of",
+          Bolivia: "Bolivia (Plurinational State of)",
+          Laos: "Lao People's Democratic Republic",
+          Brunei: "Brunei Darussalam",
+          Palestine: "Palestine, State of",
+          Libya: "Libyan Arab Jamahiriya",
+          Congo: "Congo (Republic of the)",
+          "Democratic Republic of the Congo":
+            "Congo (Democratic Republic of the)",
+          "Ivory Coast": "Côte d'Ivoire",
+          "Cape Verde": "Cabo Verde",
+          "East Timor": "Timor-Leste",
+          Swaziland: "Eswatini",
+          Burma: "Myanmar",
+          Macedonia: "North Macedonia",
+          UK: "United Kingdom",
+          UAE: "United Arab Emirates",
+          Bahamas: "Bahamas",
+          Gambia: "Gambia",
+          "The Gambia": "Gambia",
+          "Republic of the Congo": "Congo",
+          "Republic of Korea": "Korea (Republic of)",
+          "Republic of Moldova": "Moldova (Republic of)",
+          "Slovak Republic": "Slovakia",
+          Syria: "Syrian Arab Republic",
+          Taiwan: "Taiwan (Province of China)",
+          "Hong Kong": "Hong Kong",
+          Macau: "Macao",
+        };
+        const lookup = countryMap[country] || country;
+        const url = `https://restcountries.com/v3.1/name/${encodeURIComponent(lookup)}`;
+        try {
+          console.log("Fetching flag for:", lookup);
+          const res = await fetch(url);
+          const data = await res.json();
+          const flagUrl = data[0]?.flags?.svg || "";
+          if (flagUrl) {
+            document.getElementById("country-flag").innerHTML =
+              `<img src="${flagUrl}" alt="${country} flag" style="height:48px;vertical-align:middle;margin-right:8px;"> <span style="font-size:1.1em;font-weight:600;">${country}</span>`;
+          } else {
+            console.log(
+              "Country for flag (not found):",
+              country,
+              "API response:",
+              data,
+            );
+            document.getElementById("country-flag").innerHTML =
+              '<span style="color:#888;">Flag not found for this country.</span>';
+          }
+        } catch (e) {
+          console.log("Country for flag (error):", country, e);
+          document.getElementById("country-flag").innerHTML =
+            '<span style="color:#888;">Flag not found for this country.</span>';
         }
+      }
 
-        function showQuiz(correctCountry) {
-            // Generate 3 random countries + correct answer
-            const allCountries = [
-                'United States', 'Brazil', 'India', 'Australia', 'Canada', 'Russia', 'China', 'France', 'Germany', 'South Africa',
-                'Argentina', 'Japan', 'Egypt', 'Mexico', 'Italy', 'Spain', 'Turkey', 'Indonesia', 'Saudi Arabia', 'United Kingdom'
-            ];
-            const options = [correctCountry];
-            while (options.length < 4) {
-                const c = allCountries[Math.floor(Math.random() * allCountries.length)];
-                if (!options.includes(c)) options.push(c);
-            }
-            shuffle(options);
-            let html = `<b>Quiz:</b> What country is this location in?<br>`;
-            options.forEach(opt => {
-                html += `<button onclick="submitQuizAnswer('${opt.replace(/'/g, "\\'")}', '${correctCountry.replace(/'/g, "\\'")}' )">${opt}</button> `;
-            });
-            document.getElementById('quiz').innerHTML = html;
+      function showQuiz(correctCountry) {
+        // Generate 3 random countries + correct answer
+        const allCountries = [
+          "United States",
+          "Brazil",
+          "India",
+          "Australia",
+          "Canada",
+          "Russia",
+          "China",
+          "France",
+          "Germany",
+          "South Africa",
+          "Argentina",
+          "Japan",
+          "Egypt",
+          "Mexico",
+          "Italy",
+          "Spain",
+          "Turkey",
+          "Indonesia",
+          "Saudi Arabia",
+          "United Kingdom",
+        ];
+        const options = [correctCountry];
+        while (options.length < 4) {
+          const c =
+            allCountries[Math.floor(Math.random() * allCountries.length)];
+          if (!options.includes(c)) options.push(c);
         }
+        shuffle(options);
+        let html = `<b>Quiz:</b> What country is this location in?<br>`;
+        options.forEach((opt) => {
+          html += `<button onclick="submitQuizAnswer('${opt.replace(/'/g, "\\'")}', '${correctCountry.replace(/'/g, "\\'")}' )">${opt}</button> `;
+        });
+        document.getElementById("quiz").innerHTML = html;
+      }
 
         function submitQuizAnswer(selected, correct) {
+            const quizContainer = document.getElementById('quiz');
             if (selected === correct) {
-                document.getElementById('quiz').innerHTML = 'Correct! +100 bonus points!';
-                // Optionally emit to server to add points
+                quizContainer.innerHTML = `
+                    <div style="text-align: center; color: var(--success-color); font-weight: bold; font-size: 1.2rem;">
+                        🎉 Correct! +100 bonus points!
+                    </div>
+                `;
+                // In a real implementation, you'd emit this to the server
             } else {
-                document.getElementById('quiz').innerHTML = 'Incorrect. No bonus points.';
+                quizContainer.innerHTML = `
+                    <div style="text-align: center; color: #d63031; font-weight: bold;">
+                        ❌ Incorrect. The correct answer was ${correct}.
+                    </div>
+                `;
             }
         }
 
-        function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      // --- Utils ---
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
     </script>
-</body>
+  </body>
 </html>

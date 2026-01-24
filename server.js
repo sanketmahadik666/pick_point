@@ -18,136 +18,204 @@ app.get('/', (req, res) => {
 
 // --- Game State Management ---
 let games = {}; // { gameId: gameState }
+let socketToGame = {}; // { socketId: gameId } - O(1) lookup
 
 const MAX_ROUNDS = 6;
 const ROUND_DELAY = 5000; // 5 seconds between rounds
 
-// --- Helper Functions ---
-
-function createNewGame(gameId) {
-    return {
-        gameId: gameId,
-        players: {},
-        playerOrder: [],
-        round: 0,
-        maxRounds: MAX_ROUNDS,
-        phase: 'WAITING', // WAITING, SETTING, GUESSING, ROUND_END
-        setterId: null,
-        guesserId: null,
-        actualLocation: null,
-        hint: null,
-        attemptsLeft: 3,
-        lastGuess: null
-    };
-}
-
-function getSanitizedGameState(game, playerId) {
-    // Prevents leaking the actualLocation to the guesser during the GUESSING phase
-    const state = { ...game };
-    if (state.phase === 'GUESSING' && state.guesserId === playerId) {
-        delete state.actualLocation;
-    }
-    return state;
-}
-
-function emitGameState(gameId) {
-    const game = games[gameId];
-    if (!game) return;
-    
-    // Send a tailored game state to each player
-    Object.keys(game.players).forEach(playerId => {
-        io.to(playerId).emit('game_state', getSanitizedGameState(game, playerId));
-    });
-}
-
-function startRound(gameId) {
-    const game = games[gameId];
-    if (!game) return;
-
-    if (game.round >= game.maxRounds) {
-        endGame(gameId);
-        return;
+// --- Game Class with State Machine ---
+class Game {
+    constructor(gameId, io) {
+        this.gameId = gameId;
+        this.io = io;
+        this.players = {}; // { socketId: { id, name, score } }
+        this.playerOrder = [];
+        this.round = 0;
+        this.maxRounds = MAX_ROUNDS;
+        this.phase = 'WAITING'; // WAITING, SETTING, GUESSING, ROUND_END, GAME_END
+        this.setterId = null;
+        this.guesserId = null;
+        this.actualLocation = null;
+        this.hint = null;
+        this.attemptsLeft = 3;
+        this.lastGuess = null;
     }
 
-    game.round++;
-    game.phase = 'SETTING';
-    game.attemptsLeft = 3;
-    game.actualLocation = null;
-    game.hint = null;
-    game.lastGuess = null;
-
-    // Switch roles. Setter is determined by (round - 1) % 2
-    const setterIndex = (game.round - 1) % 2;
-    game.setterId = game.playerOrder[setterIndex];
-    game.guesserId = game.playerOrder[1 - setterIndex];
-    
-    console.log(`[${gameId}] Starting Round ${game.round}. Setter: ${game.setterId}, Guesser: ${game.guesserId}`);
-    
-    emitGameState(gameId);
-}
-
-function calculatePoints(distance) {
-    // distance is in meters
-    if (distance <= 50) return 5000; // Perfect guess
-    if (distance > 1500000) return 0; // Over 1500km away
-    
-    // Use a logarithmic scale to make closer guesses much more valuable
-    const points = 5000 - Math.floor(Math.log(distance) * 500);
-    return Math.max(0, points);
-}
-
-
-function endRound(gameId, distance) {
-    const game = games[gameId];
-    if (!game) return;
-
-    game.phase = 'ROUND_END';
-    const points = calculatePoints(distance);
-    game.players[game.guesserId].score += points;
-
-    console.log(`[${gameId}] Round ended. Distance: ${distance.toFixed(2)}m. Points: ${points}`);
-
-    io.to(gameId).emit('round_end', {
-        actualLocation: [game.actualLocation.lat, game.actualLocation.lon],
-        lastGuess: game.lastGuess,
-        distance: distance / 1000, // send in km
-        roundPoints: points,
-    });
-
-    // Wait for a few seconds, then start the next round
-    setTimeout(() => {
-        startRound(gameId);
-    }, ROUND_DELAY);
-}
-
-function endGame(gameId) {
-    const game = games[gameId];
-    if (!game) return;
-
-    game.phase = 'GAME_END';
-
-    const p1 = game.players[game.playerOrder[0]];
-    const p2 = game.players[game.playerOrder[1]];
-    
-    let winnerId = null;
-    let isDraw = false;
-
-    if (p1.score > p2.score) {
-        winnerId = p1.id;
-    } else if (p2.score > p1.score) {
-        winnerId = p2.id;
-    } else {
-        isDraw = true;
+    transitionTo(newPhase) {
+        console.log(`[${this.gameId}] Transition: ${this.phase} -> ${newPhase}`);
+        this.phase = newPhase;
     }
-    
-    console.log(`[${gameId}] Game ended. Winner: ${winnerId}, Draw: ${isDraw}`);
 
-    io.to(gameId).emit('game_end', { winnerId, isDraw });
-    
-    // Clean up the game room after a short delay
-    setTimeout(() => {
-        delete games[gameId];
-    }, 10000);
+    addPlayer(socket) {
+        const numPlayers = Object.keys(this.players).length;
+        if (numPlayers >= 2) return false;
+
+        this.players[socket.id] = { id: socket.id, name: `Player ${numPlayers + 1}`, score: 0 };
+        this.playerOrder.push(socket.id);
+        socket.join(this.gameId);
+        
+        console.log(`[${this.gameId}] Player ${socket.id} joined. Total: ${numPlayers + 1}`);
+        
+        if (Object.keys(this.players).length === 2) {
+            this.startRound();
+        } else {
+            this.emitGameState();
+        }
+        return true;
+    }
+
+    startRound() {
+        if (this.round >= this.maxRounds) {
+            this.endGame();
+            return;
+        }
+
+        this.round++;
+        this.transitionTo('SETTING');
+        this.attemptsLeft = 3;
+        this.actualLocation = null;
+        this.hint = null;
+        this.lastGuess = null;
+
+        const setterIndex = (this.round - 1) % 2;
+        this.setterId = this.playerOrder[setterIndex];
+        this.guesserId = this.playerOrder[1 - setterIndex];
+        
+        this.emitGameState();
+    }
+
+    setLocation(socketId, location, radius, hint) {
+        if (socketId !== this.setterId || this.phase !== 'SETTING') return;
+        
+        const radiusX = radius * 1.5;
+        const radiusY = radius;
+        const rotation = Math.random() * Math.PI;
+
+        this.actualLocation = { lat: location[0], lon: location[1] };
+        this.hint = {
+            center: location,
+            radius: radius,
+            radiusX: radiusX,
+            radiusY: radiusY,
+            rotation: rotation,
+            message: hint
+        };
+        this.transitionTo('GUESSING');
+        
+        console.log(`[${this.gameId}] Location set.`);
+        this.emitGameState();
+    }
+
+    makeGuess(socketId, location) {
+        if (socketId !== this.guesserId || this.phase !== 'GUESSING') return;
+        
+        this.attemptsLeft--;
+        this.lastGuess = location;
+        
+        const guess = { lat: location[0], lon: location[1] };
+        const distance = haversine(guess, this.actualLocation);
+
+        console.log(`[${this.gameId}] Guess: ${distance.toFixed(2)}m. Attempts: ${this.attemptsLeft}`);
+
+        // Emit result only to guesser
+        this.io.to(socketId).emit('guess_result', {
+            distance: distance / 1000,
+            attemptsLeft: this.attemptsLeft,
+            guessLocation: location
+        });
+
+        if (distance <= 50 || this.attemptsLeft <= 0) {
+            this.endRound(distance);
+        }
+    }
+
+    calculatePoints(distance) {
+        if (distance <= 50) return 5000;
+        if (distance > 1500000) return 0;
+        const points = 5000 - Math.floor(Math.log(distance) * 500);
+        return Math.max(0, points);
+    }
+
+    endRound(distance) {
+        this.transitionTo('ROUND_END');
+        const points = this.calculatePoints(distance);
+        this.players[this.guesserId].score += points;
+
+        this.io.to(this.gameId).emit('round_end', {
+            actualLocation: [this.actualLocation.lat, this.actualLocation.lon],
+            lastGuess: this.lastGuess,
+            distance: distance / 1000,
+            roundPoints: points,
+        });
+
+        setTimeout(() => {
+            // Check if game still exists before starting next round
+            if (games[this.gameId]) {
+                this.startRound();
+            }
+        }, ROUND_DELAY);
+    }
+
+    endGame() {
+        this.transitionTo('GAME_END');
+        const p1 = this.players[this.playerOrder[0]];
+        const p2 = this.players[this.playerOrder[1]];
+        
+        let winnerId = null;
+        let isDraw = false;
+
+        if (p1.score > p2.score) winnerId = p1.id;
+        else if (p2.score > p1.score) winnerId = p2.id;
+        else isDraw = true;
+
+        this.io.to(this.gameId).emit('game_end', { winnerId, isDraw });
+        
+        setTimeout(() => {
+            this.cleanup();
+        }, 10000);
+    }
+
+    cleanup() {
+        if (games[this.gameId]) {
+             Object.keys(this.players).forEach(pid => {
+                 delete socketToGame[pid];
+             });
+             delete games[this.gameId];
+             console.log(`[${this.gameId}] Game cleaned up.`);
+        }
+    }
+
+    getSanitizedState(playerId) {
+        const state = {
+            gameId: this.gameId,
+            players: this.players,
+            round: this.round,
+            maxRounds: this.maxRounds,
+            phase: this.phase,
+            setterId: this.setterId,
+            guesserId: this.guesserId,
+            hint: this.hint,
+            attemptsLeft: this.attemptsLeft,
+            lastGuess: this.lastGuess,
+            role: null // will be set by client or we could set it here
+        };
+        
+        if (state.phase === 'GUESSING' && state.guesserId === playerId) {
+            // No actual location for guesser
+        } else if (state.phase === 'ROUND_END' || state.phase === 'GAME_END') {
+             // everyone can see location
+             state.actualLocation = this.actualLocation;
+        }
+        // Note: We don't send actualLocation in SETTING or GUESSING normally unless round end
+        
+        return state;
+    }
+
+    emitGameState() {
+        Object.keys(this.players).forEach(playerId => {
+            this.io.to(playerId).emit('game_state', this.getSanitizedState(playerId));
+        });
+    }
 }
 
 
@@ -160,91 +228,42 @@ io.on('connection', (socket) => {
         
         let game = games[gameId];
         if (!game) {
-            game = createNewGame(gameId);
+            game = new Game(gameId, io);
             games[gameId] = game;
         }
 
-        const numPlayers = Object.keys(game.players).length;
-        if (numPlayers >= 2) {
-            socket.emit('error_message', { message: 'This game room is full.' });
-            return;
-        }
-
-        socket.join(gameId);
-        game.players[socket.id] = { id: socket.id, name: `Player ${numPlayers + 1}`, score: 0 };
-        game.playerOrder.push(socket.id);
-
-        console.log(`[${gameId}] Player ${socket.id} joined. Total players: ${numPlayers + 1}`);
-
-        if (Object.keys(game.players).length === 2) {
-            startRound(gameId); // This will also emit the first game state
+        const added = game.addPlayer(socket);
+        if (added) {
+            socketToGame[socket.id] = gameId;
         } else {
-            emitGameState(gameId); // Update waiting screen for the first player
+            socket.emit('error_message', { message: 'This game room is full.' });
         }
     });
 
     socket.on('set_location', ({ gameId, location, radius, hint }) => {
         const game = games[gameId];
-        if (!game || socket.id !== game.setterId || game.phase !== 'SETTING') return;
-        
-        // Ellipse parameters
-        const radiusX = radius * 1.5;
-        const radiusY = radius;
-        const rotation = Math.random() * Math.PI; // random rotation in radians
-
-        game.actualLocation = { lat: location[0], lon: location[1] };
-        game.hint = {
-            center: location,
-            radius: radius, // keep for reference
-            radiusX: radiusX,
-            radiusY: radiusY,
-            rotation: rotation,
-            message: hint
-        };
-        game.phase = 'GUESSING';
-        
-        console.log(`[${gameId}] Location set by ${socket.id} with hint: ${hint}, ellipse: (${radiusX}, ${radiusY}, ${rotation})`);
-        emitGameState(gameId);
+        if (game) {
+            game.setLocation(socket.id, location, radius, hint);
+        }
     });
 
     socket.on('make_guess', ({ gameId, location }) => {
         const game = games[gameId];
-        if (!game || socket.id !== game.guesserId || game.phase !== 'GUESSING') return;
-        
-        game.attemptsLeft--;
-        game.lastGuess = location;
-        
-        const guess = { lat: location[0], lon: location[1] };
-        const distance = haversine(guess, game.actualLocation);
-
-        console.log(`[${gameId}] Guess made by ${socket.id}. Distance: ${distance.toFixed(2)}m. Attempts left: ${game.attemptsLeft}`);
-
-        // Emit result of the guess back to the guesser only
-        socket.emit('guess_result', {
-            distance: distance / 1000, // km
-            attemptsLeft: game.attemptsLeft,
-            guessLocation: location
-        });
-
-        // End round if guess is very close or no attempts left
-        if (distance <= 50 || game.attemptsLeft <= 0) {
-            endRound(gameId, distance);
+        if (game) {
+            game.makeGuess(socket.id, location);
         }
     });
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-        // Find which game the user was in and handle their departure
-        for (const gameId in games) {
+        const gameId = socketToGame[socket.id];
+        if (gameId) {
             const game = games[gameId];
-            if (game.players[socket.id]) {
-                console.log(`[${gameId}] Player ${socket.id} disconnected.`);
-                // Notify the other player
-                io.to(gameId).emit('error_message', { message: 'Your opponent has disconnected. The game is over.' });
-                // Clean up the game
-                delete games[gameId];
-                break;
+            if (game) {
+                game.removePlayer(socket.id); // This will handle cleanup trigger if needed
+                game.cleanup();
             }
+            delete socketToGame[socket.id];
         }
     });
 });
