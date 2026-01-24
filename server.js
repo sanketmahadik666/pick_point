@@ -11,9 +11,10 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 // Serve the client-side file
-app.use(express.static(path.join(__dirname)));
+// Serve the client-side files from 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // --- Game State Management ---
@@ -22,6 +23,53 @@ let socketToGame = {}; // { socketId: gameId } - O(1) lookup
 
 const MAX_ROUNDS = 6;
 const ROUND_DELAY = 5000; // 5 seconds between rounds
+
+// --- Strategy Pattern: Scoring ---
+class ScoringStrategy {
+    calculate(distance) {
+        throw new Error("Method 'calculate' must be implemented.");
+    }
+}
+
+class LogarithmicScoring extends ScoringStrategy {
+    calculate(distance) {
+        if (distance <= 50) return 5000;
+        if (distance > 1500000) return 0;
+        const points = 5000 - Math.floor(Math.log(distance) * 500);
+        return Math.max(0, points);
+    }
+}
+
+class LinearScoring extends ScoringStrategy { // Example alternative
+    calculate(distance) {
+        const points = 5000 - (distance / 1000) * 2; // -2 points per km
+        return Math.max(0, Math.floor(points));
+    }
+}
+
+// --- Command Pattern: User Actions ---
+class Command {
+    constructor(game, socket, data) {
+        this.game = game;
+        this.socket = socket;
+        this.data = data;
+    }
+    execute() {
+        throw new Error("Method 'execute' must be implemented.");
+    }
+}
+
+class SetLocationCommand extends Command {
+    execute() {
+        this.game.setLocation(this.socket.id, this.data.location, this.data.radius, this.data.hint);
+    }
+}
+
+class MakeGuessCommand extends Command {
+    execute() {
+        this.game.makeGuess(this.socket.id, this.data.location);
+    }
+}
 
 // --- Game Class with State Machine ---
 class Game {
@@ -39,6 +87,18 @@ class Game {
         this.hint = null;
         this.attemptsLeft = 3;
         this.lastGuess = null;
+        this.scoringStrategy = new LogarithmicScoring(); // Default strategy
+    }
+
+    setScoringStrategy(strategy) {
+        this.scoringStrategy = strategy;
+    }
+    
+    // Observer Pattern: Notify players
+    notifyPlayers(event, data) {
+         Object.keys(this.players).forEach(playerId => {
+            this.io.to(playerId).emit(event, data);
+        });
     }
 
     transitionTo(newPhase) {
@@ -130,10 +190,7 @@ class Game {
     }
 
     calculatePoints(distance) {
-        if (distance <= 50) return 5000;
-        if (distance > 1500000) return 0;
-        const points = 5000 - Math.floor(Math.log(distance) * 500);
-        return Math.max(0, points);
+        return this.scoringStrategy.calculate(distance);
     }
 
     endRound(distance) {
@@ -243,14 +300,16 @@ io.on('connection', (socket) => {
     socket.on('set_location', ({ gameId, location, radius, hint }) => {
         const game = games[gameId];
         if (game) {
-            game.setLocation(socket.id, location, radius, hint);
+            const command = new SetLocationCommand(game, socket, { location, radius, hint });
+            command.execute();
         }
     });
 
     socket.on('make_guess', ({ gameId, location }) => {
         const game = games[gameId];
         if (game) {
-            game.makeGuess(socket.id, location);
+             const command = new MakeGuessCommand(game, socket, { location });
+             command.execute();
         }
     });
 
@@ -260,7 +319,8 @@ io.on('connection', (socket) => {
         if (gameId) {
             const game = games[gameId];
             if (game) {
-                game.removePlayer(socket.id); // This will handle cleanup trigger if needed
+                // We should add a removePlayer method to Game if one exists or handle cleanup
+                delete game.players[socket.id]; // Basic removal for now, ideally part of Game class
                 game.cleanup();
             }
             delete socketToGame[socket.id];
