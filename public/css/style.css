@@ -86,15 +86,14 @@ h3 {
 }
 
 #map {
-  border: 3px solid var(--rose-gold);
+  border: 4px solid var(--vivele-deep); /* Framing the world */
   border-radius: var(--border-radius-md);
   box-shadow:
-    var(--shadow-elegant),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  margin: 1em auto;
-  width: 95vw;
-  max-width: 1200px;
-  height: 70vh;
+    inset 0 0 20px rgba(184, 105, 181, 0.2); /* Inner depth */
+    
+  margin: 0 auto;
+  width: 100%; /* Fill container */
+  height: 60vh;
   min-height: 500px;
   position: relative;
   z-index: 1;
@@ -191,16 +190,22 @@ button:active,
 .fact,
 .address,
 .flag {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(183, 110, 121, 0.3);
-  border-radius: var(--border-radius-md);
-  padding: 1.5em 2em;
-  margin: 1em auto;
+  /* High Contrast Card Style */
+  background: #ffffff;
+  border: 4px solid #ffffff; /* Inner white border */
+  outline: 1px solid var(--vivele-mid);
+  
+  border-radius: 18px;
+  padding: 1.5rem 2rem;
+  margin: 1rem auto;
   max-width: 600px;
-  box-shadow:
-    var(--shadow-subtle),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
+  
+  /* 3D Lift */
+  box-shadow: 
+    0 10px 30px rgba(184, 105, 181, 0.15),
+    0 0 0 1px rgba(184, 105, 181, 0.1);
+    
+  color: #1a0520; /* High contrast reading text */
 }
 
 input,
@@ -664,21 +669,36 @@ body::after {
   animation: var(--sparkle-animation);
 }
 
+/* --- THE VIVELE MAINFRAME: MAP CONTAINER --- */
 #map-container {
   width: 100%;
   min-height: 550px;
-  border-radius: var(--border-radius-lg);
-  overflow: visible;
-  box-shadow: var(--shadow-elegant);
-  margin: 0 auto 1.5rem;
-  background: var(--card-color);
-  padding: 1rem;
-  border: 2px solid rgba(255, 182, 193, 0.4);
+  
+  /* Strong Base */
+  background: #ffffff;
+  padding: 1.5rem;
+  margin: 0 auto 2rem;
+  
+  /* The 3D Pop-out Effect */
+  border-radius: 30px;
+  border: 8px solid #ffffff; 
+  outline: 2px solid var(--vivele-mid);
+  box-shadow: 
+    0 25px 60px rgba(0,0,0,0.25),         /* Deep Depth */
+    0 0 0 10px rgba(184, 105, 181, 0.2);  /* VIVELE Glow Ring */
+    
   position: relative;
-  backdrop-filter: blur(5px);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+#map-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 30px 70px rgba(0,0,0,0.3),
+    0 0 0 12px rgba(184, 105, 181, 0.3);
 }
 
 #map-container::before {
