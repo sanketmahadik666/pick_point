@@ -29,33 +29,63 @@
   backdrop-filter: blur(35px) saturate(180%);
   
   transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
-  will-change: transform, opacity, background-position;
+  will-change: transform, opacity;
 }
 
-/* Fluid Wave Animation: Slowly shifting the centers of gravity */
-@keyframes fluidWaves {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 50% 100%; }
+/* --- THE STONE IN POND EFFECT --- */
+/* We create two massive expanding rings to simulate strong impact ripples */
+.glass-curtain::before,
+.glass-curtain::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0; 
+}
+
+/* Primary Wave (The Big One) */
+.glass-curtain::before {
+  width: 0;
+  height: 0;
+  box-shadow: 
+    0 0 0 15px rgba(255, 192, 203, 0.3),    /* Inner Ring */
+    0 0 0 30px rgba(255, 223, 0, 0.1),      /* Gold Hint */
+    0 0 50px rgba(255, 182, 193, 0.5);      /* Bloom */
+  animation: rippleBlast 4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+/* Secondary Wave (The Follow-up) */
+.glass-curtain::after {
+  width: 0;
+  height: 0;
+  /* Stronger definition for the second wave */
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 40px rgba(255, 105, 180, 0.2);
+  animation: rippleBlast 4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  animation-delay: 2s; /* Perfect offset */
+}
+
+@keyframes rippleBlast {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+    border-width: 5px;
+  }
+  100% {
+    width: 250vmax; /* Expands way beyond screen */
+    height: 250vmax;
+    opacity: 0;
+    border-width: 50px; /* Thicken as it moves out */
+  }
 }
 
 /* Ambient Glow: Background atmosphere - keeping it subtle as the background itself is now active */
 .ambient-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120vw;
-  height: 120vh;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
-  animation: pulseGlow 5s ease-in-out infinite alternate;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-}
-
-@keyframes pulseGlow {
-  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
-  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+  display: none;
 }
 
 /* Kinetic Typography: The "Eureka" Title */
