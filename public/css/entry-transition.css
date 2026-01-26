@@ -14,37 +14,48 @@
   justify-content: center;
   overflow: hidden;
   
-  /* Core Aesthetics: Liquid Glass & Pink Milky */
-  background: radial-gradient(
-    circle at 50% 40%,
-    rgba(255, 235, 240, 0.98) 0%,
-    rgba(255, 192, 203, 0.92) 60%,
-    rgba(255, 182, 193, 1) 100%
-  );
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  backdrop-filter: blur(25px) saturate(180%);
+  /* --- The Fluid Circular Waves --- */
+  /* We use multiple radial gradients to create interference patterns */
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(255, 182, 193, 0.45) 0%, transparent 50%), 
+    radial-gradient(circle at 85% 30%, rgba(255, 223, 0, 0.15) 0%, transparent 50%), 
+    radial-gradient(circle at 50% 80%, rgba(255, 192, 203, 0.35) 0%, transparent 50%),
+    linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%); /* Base milky layer */
   
-  /* The Luxury Curve: Physics-based heavy lift */
+  background-size: 180% 180%;
+  animation: fluidWaves 12s ease-in-out infinite alternate;
+  
+  -webkit-backdrop-filter: blur(35px) saturate(180%);
+  backdrop-filter: blur(35px) saturate(180%);
+  
   transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
-  will-change: transform, opacity;
+  will-change: transform, opacity, background-position;
 }
 
-/* Ambient Glow: Background atmosphere - Warmer Gold/Pink mix */
+/* Fluid Wave Animation: Slowly shifting the centers of gravity */
+@keyframes fluidWaves {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 50% 100%; }
+}
+
+/* Ambient Glow: Background atmosphere - keeping it subtle as the background itself is now active */
 .ambient-glow {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 150vw;
-  height: 150vh;
+  width: 120vw;
+  height: 120vh;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 192, 4, 0.15) 0%, rgba(255, 105, 180, 0.1) 50%, transparent 70%);
-  animation: pulseGlow 3s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  animation: pulseGlow 5s ease-in-out infinite alternate;
   pointer-events: none;
+  mix-blend-mode: overlay;
 }
 
 @keyframes pulseGlow {
-  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.7; }
-  100% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
 }
 
 /* Kinetic Typography: The "Eureka" Title */
@@ -52,7 +63,7 @@
   font-family: 'Playfair Display', serif;
   font-size: clamp(4rem, 15vw, 8rem);
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   margin: 0;
   position: relative;
   z-index: 2;
@@ -61,9 +72,9 @@
   background: linear-gradient(
     135deg, 
     #ffc004 0%, 
-    #ffd700 25%, 
+    #ffd700 30%, 
     #ffc004 50%, 
-    #ffa500 75%, 
+    #ffa500 70%, 
     #ffc004 100%
   );
   background-size: 200% auto;
@@ -73,29 +84,38 @@
   color: transparent;
   
   /* Dynamic Interactivity Feel */
-  filter: drop-shadow(0 0 15px rgba(255, 192, 4, 0.4));
-  animation: liquidShimmer 2s linear infinite, breathingText 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 192, 4, 0.3));
+  animation: liquidShimmer 4s linear infinite, breathingText 6s ease-in-out infinite;
   display: flex;
 }
 
 .eureka-title span {
   display: inline-block;
   opacity: 0;
-  transform: translateY(40px) scale(0.9);
-  animation: constructText 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  filter: blur(15px);
+  transform: translateY(30px) scale(0.95);
+  
+  /* The "Mist Reveal": Ultra-smooth dampening */
+  animation: constructText 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
 }
 
-/* Stagger letters */
+/* Stagger letters - slightly longer delays for "wave" feel */
 .eureka-title span:nth-child(1) { animation-delay: 0.1s; }
-.eureka-title span:nth-child(2) { animation-delay: 0.2s; }
-.eureka-title span:nth-child(3) { animation-delay: 0.3s; }
-.eureka-title span:nth-child(4) { animation-delay: 0.4s; }
-.eureka-title span:nth-child(5) { animation-delay: 0.5s; }
-.eureka-title span:nth-child(6) { animation-delay: 0.6s; }
+.eureka-title span:nth-child(2) { animation-delay: 0.25s; }
+.eureka-title span:nth-child(3) { animation-delay: 0.4s; }
+.eureka-title span:nth-child(4) { animation-delay: 0.55s; }
+.eureka-title span:nth-child(5) { animation-delay: 0.7s; }
+.eureka-title span:nth-child(6) { animation-delay: 0.85s; }
 
 @keyframes constructText {
-  to {
+  0% {
+    opacity: 0;
+    filter: blur(15px);
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
     opacity: 1;
+    filter: blur(0px);
     transform: translateY(0) scale(1);
   }
 }
@@ -107,8 +127,8 @@
 }
 
 @keyframes breathingText {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(255, 192, 4, 0.4)); }
-  50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(255, 192, 4, 0.6)); }
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 192, 4, 0.3)); }
+  50% { transform: scale(1.03); filter: drop-shadow(0 0 30px rgba(255, 192, 4, 0.5)); }
 }
 
 /* --- STATE MANAGEMENT: The Exit --- */
@@ -117,7 +137,8 @@
 .glass-curtain[data-state="exited"] .eureka-title {
   transform: translateY(-50px) scale(1.1);
   opacity: 0;
-  transition: all 0.6s cubic-bezier(0.5, 0, 1, 1); /* Accelerate out */
+  filter: blur(20px); /* Blur out as well */
+  transition: all 0.8s cubic-bezier(0.5, 0, 1, 1);
 }
 
 /* Curtain Exit: The Lift */
@@ -128,7 +149,6 @@
 
 /* The Main Stage (App Content): Zoom Correction */
 body {
-  /* Preparing the body to be zoomed */
   transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
   transform-origin: center 30%;
 }
