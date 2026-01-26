@@ -7,19 +7,19 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 120vh;
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   
-  /* Core Aesthetics: Liquid Glass */
+  /* Core Aesthetics: Liquid Glass & Pink Milky */
   background: radial-gradient(
     circle at 50% 40%,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 240, 245, 0.98) 60%,
-    rgba(230, 230, 250, 1) 100%
+    rgba(255, 235, 240, 0.98) 0%,
+    rgba(255, 192, 203, 0.92) 60%,
+    rgba(255, 182, 193, 1) 100%
   );
   -webkit-backdrop-filter: blur(25px) saturate(180%);
   backdrop-filter: blur(25px) saturate(180%);
@@ -29,7 +29,7 @@
   will-change: transform, opacity;
 }
 
-/* Ambient Glow: Background atmosphere */
+/* Ambient Glow: Background atmosphere - Warmer Gold/Pink mix */
 .ambient-glow {
   position: absolute;
   top: 50%;
@@ -37,34 +37,34 @@
   width: 150vw;
   height: 150vh;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 192, 203, 0.4) 0%, transparent 70%);
-  animation: pulseGlow 4s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(255, 192, 4, 0.15) 0%, rgba(255, 105, 180, 0.1) 50%, transparent 70%);
+  animation: pulseGlow 3s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
 @keyframes pulseGlow {
-  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
-  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; }
+  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
 }
 
 /* Kinetic Typography: The "Eureka" Title */
 .eureka-title {
   font-family: 'Playfair Display', serif;
   font-size: clamp(4rem, 15vw, 8rem);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.05em;
   margin: 0;
   position: relative;
   z-index: 2;
   
-  /* Liquid Gold Fill */
+  /* Vibrant Golden #ffc004 Fill */
   background: linear-gradient(
     135deg, 
-    #b76e79 0%, 
-    #eaafc8 25%, 
-    #b76e79 50%, 
-    #d4a5a5 75%, 
-    #b76e79 100%
+    #ffc004 0%, 
+    #ffd700 25%, 
+    #ffc004 50%, 
+    #ffa500 75%, 
+    #ffc004 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -72,7 +72,9 @@
   -webkit-text-fill-color: transparent;
   color: transparent;
   
-  animation: liquidShimmer 3s linear infinite;
+  /* Dynamic Interactivity Feel */
+  filter: drop-shadow(0 0 15px rgba(255, 192, 4, 0.4));
+  animation: liquidShimmer 2s linear infinite, breathingText 4s ease-in-out infinite;
   display: flex;
 }
 
@@ -102,6 +104,11 @@
   to {
     background-position: 200% center;
   }
+}
+
+@keyframes breathingText {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(255, 192, 4, 0.4)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(255, 192, 4, 0.6)); }
 }
 
 /* --- STATE MANAGEMENT: The Exit --- */
