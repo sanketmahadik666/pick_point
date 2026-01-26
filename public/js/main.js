@@ -34,7 +34,7 @@ window.addEventListener('DOMContentLoaded', () => {
             // cinemaOverlay.style.display = 'none'; 
         }, 1200); // Matches the curtain transition time + buffer
         
-    }, 2500); // Allow 2.5s for the initial "Eureka" moment
+    }, 3000); // Allow 3.0s for the initial "Eureka" moment
 
     mapFacade.initialize();
     
