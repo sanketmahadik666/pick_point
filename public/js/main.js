@@ -138,3 +138,14 @@ socket.on('game_end', (data) => {
 socket.on('error_message', (data) => {
     ui.showPrompt(data.message, 'error');
 });
+
+// --- New VIVELE Features ---
+socket.on('quiz', (data) => {
+    // Expected data: { question: "...", options: ["A", "B"], correctIndex: 0 }
+    ui.showQuiz(data);
+});
+
+socket.on('fun_fact', (data) => {
+    // Expected data: { text: "Did you know..." }
+    ui.showFunFact(data.text);
+});
