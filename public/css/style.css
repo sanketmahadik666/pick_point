@@ -1,36 +1,53 @@
 :root {
-  --primary-color: #ff69b4;
-  --secondary-color: #9d7aba;
-  --accent-color: #ff91c7;
+  /* --- The VIVELE Palette (Pearl Purple) --- */
+  --vivele-deep: #B869B5;
+  --vivele-mid: #CC72C4;
+  --vivele-bright: #E182E4;
+  --vivele-light: #F191FF;
+  --vivele-pale: #F1A7FF;
+
+  /* Mappings to existing system (Gradual Migration) */
+  --primary-color: var(--vivele-bright);
+  --secondary-color: var(--vivele-deep);
+  --accent-color: var(--vivele-light);
   --success-color: #98d8c8;
   --background-color: #fef7ff;
   --card-color: #ffffff;
+  
+  /* Legacy Rose Gold (Retained for warm accents, but subordinate) */
   --rose-gold: #b76e79;
   --rose-gold-light: #c98b94;
   --rose-gold-dark: #a15864;
-  --gradient-primary: linear-gradient(135deg, #ff69b4, #ff91c7, #dda0dd);
-  --gradient-secondary: linear-gradient(135deg, #f093fb, #f5576c);
+
+  /* Updated Gradients: Electric Romance */
+  --gradient-primary: linear-gradient(135deg, var(--vivele-deep), var(--vivele-bright), var(--vivele-pale));
+  --gradient-secondary: linear-gradient(135deg, var(--vivele-mid), var(--vivele-light));
   --gradient-elegant: linear-gradient(
     135deg,
-    #b76e79 0%,
-    #dda0dd 50%,
-    #ff91c7 100%
+    var(--vivele-deep) 0%,
+    var(--vivele-bright) 50%,
+    var(--vivele-pale) 100%
   );
+  
+  /* Background: Subtle Pearl Wash */
   --gradient-background: radial-gradient(
     circle at 30% 20%,
-    rgba(255, 182, 193, 0.25) 0%,
-    rgba(221, 160, 221, 0.15) 50%,
-    rgba(255, 240, 245, 0.85) 100%
+    rgba(241, 145, 255, 0.15) 0%, /* vivele-light */
+    rgba(204, 114, 196, 0.1) 50%, /* vivele-mid */
+    rgba(255, 250, 255, 0.9) 100%
   );
+
+  /* Shadows: Tinted with Deep Purple */
   --shadow-elegant:
-    0 8px 32px rgba(183, 110, 121, 0.12),
-    0 2px 8px rgba(183, 110, 121, 0.08);
+    0 8px 32px rgba(184, 105, 181, 0.15),
+    0 2px 8px rgba(184, 105, 181, 0.1);
   --shadow-hover:
-    0 12px 40px rgba(183, 110, 121, 0.18),
-    0 4px 12px rgba(183, 110, 121, 0.12);
-  --shadow-subtle: 0 4px 16px rgba(183, 110, 121, 0.08);
-  --glow-text: 0 2px 8px rgba(183, 110, 121, 0.25);
-  --glow-soft: 0 0 20px rgba(255, 182, 193, 0.3);
+    0 12px 40px rgba(184, 105, 181, 0.25),
+    0 4px 12px rgba(184, 105, 181, 0.15);
+  --shadow-subtle: 0 4px 16px rgba(184, 105, 181, 0.1);
+  --glow-text: 0 2px 8px rgba(184, 105, 181, 0.3);
+  --glow-soft: 0 0 20px rgba(225, 130, 228, 0.4);
+
   --border-radius-sm: 15px;
   --border-radius-md: 20px;
   --border-radius-lg: 25px;
@@ -520,7 +537,7 @@ body::after {
   visibility: hidden;
 }
 
-/* --- STORY GUIDE UI --- */
+/* --- STORY GUIDE UI (VIVELE EDITION) --- */
 
 /* Floating Guide Button */
 .float-btn {
@@ -528,21 +545,25 @@ body::after {
   top: 2rem;
   right: 2rem;
   min-width: auto;
-  padding: 0.8rem 1.2rem;
-  font-size: 0.9rem;
+  padding: 0.8rem 1.4rem;
+  font-size: 0.95rem;
   z-index: 100;
   
-  /* Inherit Glass Button Styles but refine positioning */
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--rose-gold);
-  color: var(--rose-gold-dark);
+  /* VIVELE Glass */
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--vivele-mid);
+  color: var(--vivele-deep);
   border-radius: 30px;
-  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.2);
+  box-shadow: 0 4px 15px rgba(184, 105, 181, 0.2);
+  font-weight: 600;
+  letter-spacing: 0.5px;
   
   &:hover {
     transform: translateY(-2px);
     background: #fff;
-    box-shadow: 0 6px 20px rgba(183, 110, 121, 0.3);
+    border-color: var(--vivele-bright);
+    color: var(--vivele-bright);
+    box-shadow: 0 6px 20px rgba(184, 105, 181, 0.4);
   }
 }
 
@@ -557,9 +578,11 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(61, 44, 78, 0.6); /* Dim background */
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+  
+  /* VIVELE Atmosphere: Deep Purple Haze */
+  background: radial-gradient(circle at center, rgba(184, 105, 181, 0.8), rgba(61, 44, 78, 0.9));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   
   &.hidden {
     display: none;
@@ -567,39 +590,59 @@ body::after {
 }
 
 .glass-panel.story-content {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 3rem;
-  max-width: 600px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 3.5rem;
+  max-width: 650px;
   width: 90%;
-  border-radius: var(--border-radius-lg);
+  border-radius: 30px; /* Softer, more organic */
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  animation: slideUpFade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  
+  /* Deep VIVELE Shadow */
+  box-shadow: 0 25px 80px rgba(184, 105, 181, 0.35);
+  border: 2px solid var(--vivele-pale);
+  animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   
   & h2 {
-    color: var(--rose-gold-dark);
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
+    color: var(--vivele-deep);
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem; /* Senior Layout: Bigger Typography */
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--vivele-deep), var(--vivele-bright));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   
   & p {
-    font-size: 1.2rem;
-    line-height: 1.8;
-    color: #555;
-    margin-bottom: 2.5rem;
+    font-size: 1.25rem;
+    line-height: 1.9;
+    color: #4a3b55; /* Deep purple-grey */
+    margin-bottom: 3rem;
+    font-weight: 400;
   }
 }
 
 .story-nav {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
   
   & button {
-    min-width: 100px;
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
+    min-width: 120px;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.05rem;
+    border-radius: 12px;
+    
+    /* VIVELE Gradient Buttons */
+    background: var(--gradient-elegant);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(184, 105, 181, 0.3);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(184, 105, 181, 0.5);
+    }
   }
 }
 

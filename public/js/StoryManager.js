@@ -2,20 +2,20 @@ class StoryManager {
   constructor() {
     this.steps = [
       {
-        title: "The Journey of Souls",
-        text: "In a vast connected world, two souls wander, destined to meet. This isn't just a game of maps—it's a journey of connection.",
+        title: "Act I: The Drift",
+        text: "In the chaos of the digital ether, we are often lost signals. Drifting energetic points looking for a frequency that matches our own. This world is vast, but connection is inevitable.",
       },
       {
-        title: "The Beacon",
-        text: "One soul takes the role of the <strong>The Beacon</strong> (Setter). You choose a secret place in the world that means something to you, planting a flag for your partner to find.",
+        title: "Act II: The Anchor",
+        text: "One soul becomes the <strong>Anchor</strong> (Setter). You must find a place of stillness in this noisy world. Plant your feet, cast your signal, and wait for the echo that says you are not alone.",
       },
       {
-        title: "The Seeker",
-        text: "The other becomes <strong>The Seeker</strong> (Guesser). Guided only by intuition and the hints whispered by the Beacon, you search the globe to find where your other half is waiting.",
+        title: "Act III: The Resonance",
+        text: "The other becomes the <strong>Seeker</strong> (Guesser). You do not search with eyes, but with intuition. Feel the pull of the bond. The closer you get to the Anchor, the stronger the vibration in your heart.",
       },
       {
-        title: "The Reunion",
-        text: "As you guess closer, the bond strengthens. Your goal is not just to score points, but to achieve <strong>Resonance</strong>—finding the exact spot where your paths cross.",
+        title: "Act IV: The Convergence",
+        text: "<strong>Resonance</strong> is achieved when two points occupy the same emotional space. Close the distance. Find the spot where your timelines intersect. <em>Eureka.</em>",
       }
     ];
     this.currentStep = 0;
@@ -77,6 +77,18 @@ class StoryManager {
     
     // Button States
     this.prevBtn.style.visibility = this.currentStep === 0 ? 'hidden' : 'visible';
-    this.nextBtn.textContent = this.currentStep === this.steps.length - 1 ? 'Finish' : 'Next';
+    this.nextBtn.textContent = this.currentStep === this.steps.length - 1 ? 'Begin' : 'Next';
+    
+    // Add VIVELE accent to current step (optional enhancement hook)
+    this.titleEl.style.opacity = '0';
+    this.textEl.style.opacity = '0';
+    
+    // Simple fade in effect for text transition
+    setTimeout(() => {
+        this.titleEl.style.transition = 'opacity 0.4s ease';
+        this.textEl.style.transition = 'opacity 0.4s ease';
+        this.titleEl.style.opacity = '1';
+        this.textEl.style.opacity = '1';
+    }, 50);
   }
 }
