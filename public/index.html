@@ -31,7 +31,25 @@
     </div>
 
     <div id="game-controls">
+      <!-- Guide Button -->
+      <button id="guide-btn" class="glass-btn float-btn" aria-label="Open Story Guide">
+        📖 The Story
+      </button>
+      
       <h1>Eureka</h1>
+
+      <!-- Story Overlay -->
+      <div id="story-overlay" class="hidden glass-panel">
+        <div class="story-content">
+          <h2 id="story-title">Title</h2>
+          <p id="story-text">Text</p>
+          <div class="story-nav">
+            <button id="story-prev-btn">Previous</button>
+            <button id="story-next-btn">Next</button>
+            <button id="story-close-btn">Close</button>
+          </div>
+        </div>
+      </div>
 
       <div id="join-controls">
         <div class="control-group">
@@ -91,6 +109,7 @@
     <!-- Modular JS -->
     <script src="js/MapFacade.js"></script>
     <script src="js/GameUI.js"></script>
+    <script src="js/StoryManager.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

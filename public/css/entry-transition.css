@@ -4,10 +4,10 @@
 /* The Stage: Full viewport cover */
 .glass-curtain {
   position: fixed;
-  top: 0;
+  top: -25vh; /* Pull up to center the excess height */
   left: 0;
   width: 100vw;
-  height: 120vh;
+  height: 150vh; /* Aggressive over-scan to handle mobile bars */
   z-index: 9999;
   display: flex;
   align-items: center;

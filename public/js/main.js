@@ -1,7 +1,7 @@
-// main.js
 const socket = io();
 const mapFacade = new MapFacade('map');
 const ui = new GameUI();
+const storyManager = new StoryManager();
 
 let gameState = {
     gameId: null,
