@@ -1,0 +1,198 @@
+
+/* --- THE DAWN OF DISCOVERY: Entry Transition --- */
+
+/* The Stage: Full viewport cover */
+.glass-curtain {
+  position: fixed;
+  top: -25vh; /* Pull up to center the excess height */
+  left: 0;
+  width: 100vw;
+  height: 150vh; /* Aggressive over-scan to handle mobile bars */
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  
+  /* --- The Fluid Circular Waves --- */
+  /* We use multiple radial gradients to create interference patterns */
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(255, 182, 193, 0.45) 0%, transparent 50%), 
+    radial-gradient(circle at 85% 30%, rgba(255, 223, 0, 0.15) 0%, transparent 50%), 
+    radial-gradient(circle at 50% 80%, rgba(255, 192, 203, 0.35) 0%, transparent 50%),
+    linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%); /* Base milky layer */
+  
+  background-size: 180% 180%;
+  animation: fluidWaves 12s ease-in-out infinite alternate;
+  
+  -webkit-backdrop-filter: blur(35px) saturate(180%);
+  backdrop-filter: blur(35px) saturate(180%);
+  
+  /* The Luxury Curve: Dissolve instead of lift */
+  
+  transition: opacity 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+  will-change: opacity;
+}
+
+/* --- THE STONE IN POND EFFECT --- */
+/* We create two massive expanding rings to simulate strong impact ripples */
+.glass-curtain::before,
+.glass-curtain::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0; 
+}
+
+/* Primary Wave (The Big One) */
+.glass-curtain::before {
+  width: 0;
+  height: 0;
+  box-shadow: 
+    0 0 0 15px rgba(255, 192, 203, 0.2),    /* Inner Ring - more subtle */
+    0 0 0 30px rgba(255, 223, 0, 0.05),     /* Gold Hint - very subtle */
+    0 0 50px rgba(255, 182, 193, 0.3);      /* Bloom - softer */
+  animation: rippleBlast 2.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+/* Secondary Wave (The Follow-up) */
+.glass-curtain::after {
+  width: 0;
+  height: 0;
+  /* Stronger definition for the second wave */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 40px rgba(255, 105, 180, 0.1);
+  animation: rippleBlast 2.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  animation-delay: 1.25s; /* Perfect offset half of 2.5s */
+}
+
+@keyframes rippleBlast {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+    border-width: 5px;
+  }
+  100% {
+    width: 250vmax; /* Expands way beyond screen */
+    height: 250vmax;
+    opacity: 0;
+    border-width: 50px; /* Thicken as it moves out */
+  }
+}
+
+/* Ambient Glow: Background atmosphere - keeping it subtle as the background itself is now active */
+.ambient-glow {
+  display: none;
+}
+
+/* Kinetic Typography: The "Eureka" Title */
+.eureka-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(4rem, 15vw, 8rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  
+  /* Vibrant Golden #ffc004 Fill */
+  background: linear-gradient(
+    135deg, 
+    #ffc004 0%, 
+    #ffd700 30%, 
+    #ffc004 50%, 
+    #ffa500 70%, 
+    #ffc004 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  
+  /* Dynamic Interactivity Feel */
+  filter: drop-shadow(0 0 20px rgba(255, 192, 4, 0.3));
+  animation: liquidShimmer 4s linear infinite, breathingText 6s ease-in-out infinite;
+  display: flex;
+}
+
+.eureka-title span {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(15px);
+  transform: translateY(30px) scale(0.95);
+  
+  /* The "Mist Reveal": Ultra-smooth dampening */
+  animation: constructText 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+/* Stagger letters - slightly longer delays for "wave" feel */
+.eureka-title span:nth-child(1) { animation-delay: 0.1s; }
+.eureka-title span:nth-child(2) { animation-delay: 0.25s; }
+.eureka-title span:nth-child(3) { animation-delay: 0.4s; }
+.eureka-title span:nth-child(4) { animation-delay: 0.55s; }
+.eureka-title span:nth-child(5) { animation-delay: 0.7s; }
+.eureka-title span:nth-child(6) { animation-delay: 0.85s; }
+
+@keyframes constructText {
+  0% {
+    opacity: 0;
+    filter: blur(15px);
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes liquidShimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes breathingText {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 192, 4, 0.3)); }
+  50% { transform: scale(1.03); filter: drop-shadow(0 0 30px rgba(255, 192, 4, 0.5)); }
+}
+
+/* --- STATE MANAGEMENT: The Exit --- */
+
+/* Text Exit: Escape Velocity */
+.glass-curtain[data-state="exited"] .eureka-title {
+  transform: scale(1.1); /* Just scale, no move up */
+  opacity: 0;
+  filter: blur(20px);
+  transition: all 1.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Curtain Exit: The Dissolve */
+.glass-curtain[data-state="exited"] {
+  opacity: 0;
+  pointer-events: none;
+  /* No transform translateY */
+}
+
+/* The Main Stage (App Content): Zoom Correction */
+body {
+  transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center 30%;
+}
+
+body.entry-active {
+  transform: scale(0.95);
+  overflow: hidden;
+}
+
+body.entry-complete {
+  transform: scale(1);
+  overflow-x: hidden;
+  overflow-y: auto;
+}

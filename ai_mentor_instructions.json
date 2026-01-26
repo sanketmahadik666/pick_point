@@ -15,7 +15,7 @@
     ]
   },
   "project_context": {
-    "project_name": "Find My Spot",
+    "project_name": "Eureka",
     "type": "Multiplayer geography guessing game",
     "tech_stack": {
       "backend": "Node.js, Express.js, Socket.IO",
