@@ -1,0 +1,154 @@
+/* --- STORY GUIDE MODULE (VIVELE 3D Edition) --- */
+
+/* 1. The Overlay Container (Backdrop) */
+#story-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* VIVELE Atmosphere: Deep Purple Haze */
+  background: radial-gradient(circle at center, rgba(184, 105, 181, 0.8), rgba(61, 44, 78, 0.95));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  
+  transition: opacity 0.4s ease;
+}
+
+#story-overlay.hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 2. The 3D Story Card (The Content) */
+/* Targeted directly - was previously mismatched as .glass-panel.story-content */
+.story-content {
+  /* Dimensions: Approx 8x8cm physical feel (responsive) */
+  width: min(340px, 85vw); 
+  min-height: min(340px, 60vh); 
+  margin: auto;
+  
+  /* Base: Pure White for High Contrast */
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  
+  /* Border & Shape */
+  border-radius: 20px;
+  
+  /* THE 3D POP EFFECT */
+  /* Layer 1: Massive White Border */
+  border: 8px solid #ffffff; 
+  /* Layer 2: Sharp VIVELE Definition */
+  outline: 3px solid var(--vivele-mid); 
+  /* Layer 3: Deep Physical Shadow + Glow */
+  box-shadow: 
+    0 30px 60px rgba(0,0,0,0.5),          /* Deep Depth */
+    0 0 0 12px rgba(184, 105, 181, 0.25); /* Outer Glow Ring */
+    
+  text-align: center;
+  display: flex; 
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative; 
+  
+  animation: cardPopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy pop */
+}
+
+/* Typography inside the card */
+.story-content h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem; 
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+  line-height: 1.2;
+  
+  /* VIVELE Gradient Text */
+  background: linear-gradient(135deg, var(--vivele-deep), #8a2be2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  filter: drop-shadow(0 2px 0px rgba(184, 105, 181, 0.2));
+}
+
+.story-content p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: #1a0520; /* High Contrast Dark Violet */
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+/* Navigation Buttons */
+.story-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.story-nav button {
+  flex: 1;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  background: var(--gradient-elegant);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 10px rgba(184, 105, 181, 0.3);
+}
+
+.story-nav button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(184, 105, 181, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Hide Close Button as requested */
+#story-close-btn {
+  display: none;
+}
+
+/* Floating Guide Button (The Trigger) */
+.float-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  min-width: auto;
+  padding: 0.8rem 1.4rem;
+  font-size: 0.95rem;
+  z-index: 100;
+  
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--vivele-mid);
+  color: var(--vivele-deep);
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(184, 105, 181, 0.2);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.float-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  background: #fff;
+  border-color: var(--vivele-bright);
+  color: var(--vivele-bright);
+  box-shadow: 0 0 20px rgba(184, 105, 181, 0.6);
+}
+
+@keyframes cardPopIn {
+  from { opacity: 0; transform: scale(0.5) translateY(50px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
