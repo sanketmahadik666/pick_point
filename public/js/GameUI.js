@@ -59,4 +59,70 @@ class GameUI {
         this.gameInfo.classList.toggle('hidden', !inGame);
         if(!inGame) this.setterControls.classList.add('hidden');
     }
+
+    showFunFact(text) {
+        const container = document.getElementById('fun-fact');
+        if (!text) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        container.innerHTML = `
+            <h3>Did You Know?</h3>
+            <p>${text}</p>
+        `;
+        // Apply VIVELE animation
+        container.style.animation = 'none';
+        container.offsetHeight; /* trigger reflow */
+        container.style.animation = 'cardPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    }
+
+    showQuiz(data) {
+        const container = document.getElementById('quiz');
+        if (!data) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        let html = `
+            <h3>Quick Quiz!</h3>
+            <p class="question">${data.question}</p>
+            <div class="options">
+        `;
+
+        data.options.forEach((opt, index) => {
+            html += `<button class="quiz-btn" onclick="ui.handleQuizAnswer(${index}, ${data.correctIndex}, this)">${opt}</button>`;
+        });
+
+        html += `</div><div id="quiz-feedback"></div>`;
+        container.innerHTML = html;
+        
+        // Apply VIVELE animation
+        container.style.animation = 'none';
+        container.offsetHeight; /* trigger reflow */
+        container.style.animation = 'cardPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards';
+    }
+
+    handleQuizAnswer(selectedIndex, correctIndex, btnElement) {
+        const feedback = document.getElementById('quiz-feedback');
+        const buttons = document.querySelectorAll('.quiz-btn');
+        
+        // Disable all buttons
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selectedIndex === correctIndex) {
+            btnElement.classList.add('correct');
+            feedback.innerHTML = '<span class="success-text">Correct! +50pts</span>';
+            // Assuming socket exists globally or we emit generically
+            // socket.emit('quiz_score', 50); 
+        } else {
+            btnElement.classList.add('wrong');
+            buttons[correctIndex].classList.add('correct'); // Show right answer
+            feedback.innerHTML = '<span class="error-text">Oof! So close.</span>';
+        }
+    }
 }
