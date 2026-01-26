@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Find My Spot</title>
+    <title>Eureka</title>
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -15,10 +15,23 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/entry-transition.css" />
   </head>
   <body>
+    <div id="cinema-overlay" class="glass-curtain" data-state="entering">
+      <div class="ambient-glow"></div>
+      <h1 class="eureka-title">
+        <span>E</span>
+        <span>u</span>
+        <span>r</span>
+        <span>e</span>
+        <span>k</span>
+        <span>a</span>
+      </h1>
+    </div>
+
     <div id="game-controls">
-      <h1>Find My Spot</h1>
+      <h1>Eureka</h1>
 
       <div id="join-controls">
         <div class="control-group">

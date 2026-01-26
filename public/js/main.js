@@ -11,6 +11,31 @@ let gameState = {
 
 // --- Initialization ---
 window.addEventListener('DOMContentLoaded', () => {
+    // --- The Dawn of Discovery: Entry Sequence ---
+    const cinemaOverlay = document.getElementById('cinema-overlay');
+    
+    // Phase 0: Initial State (Active Body Zoom)
+    document.body.classList.add('entry-active');
+    
+    // Phase 1: The Realization (Text constructs itself via CSS animation)
+    // We wait 2.0s for the text to fully form and shimmer
+    
+    setTimeout(() => {
+        // Phase 2: The Lift (Curtain rises)
+        cinemaOverlay.setAttribute('data-state', 'exited');
+        
+        // Phase 3: The Clarity (Body settles)
+        setTimeout(() => {
+            document.body.classList.remove('entry-active');
+            document.body.classList.add('entry-complete');
+            
+            // Cleanup (Optional: remove from DOM if performance is a concern, 
+            // but keeping it allows for potential re-entry effects later)
+            // cinemaOverlay.style.display = 'none'; 
+        }, 1200); // Matches the curtain transition time + buffer
+        
+    }, 2500); // Allow 2.5s for the initial "Eureka" moment
+
     mapFacade.initialize();
     
     document.getElementById('join-game-btn').addEventListener('click', () => {
