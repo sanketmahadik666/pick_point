@@ -294,142 +294,72 @@ body::after {
   filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
 }
 
+/* --- THE GLASS COCKPIT: COMMAND DECK --- */
 #game-controls {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 240, 245, 0.95) 100%
-  );
-  padding: 2rem 3rem;
-  box-shadow: var(--shadow-elegant);
-  position: relative;
+  /* Glass Base */
+  background: rgba(255, 255, 255, 0.65);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 8px 32px rgba(183, 110, 121, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  
+  padding: 2.5rem 3rem;
   border-radius: var(--border-radius-lg);
   margin: 1rem auto;
   max-width: 1400px;
   width: 95%;
   z-index: 10;
-  border: 1px solid rgba(255, 182, 193, 0.4);
-  backdrop-filter: blur(15px);
-}
-
-#game-controls::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-elegant);
-  border-radius: 4px 4px 0 0;
-  opacity: 0.8;
-}
-
-#game-controls::after {
-  content: "🌸";
-  position: absolute;
-  top: -18px;
-  right: 15px;
-  font-size: 3.5rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 1s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-}
-
-#game-controls h1 {
-  margin: 0 0 2.5rem;
-  text-align: center;
-  background: var(--gradient-elegant);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 2.5rem;
   position: relative;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-shadow: none;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
-}
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 
-/* Multiple sparkles randomly scattered around the h1 */
-#game-controls h1 .sparkle {
-  position: absolute;
-  font-size: 1.2rem;
-  animation: elegantSparkle 3s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-  pointer-events: none;
+  /* Top Accent Line */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--rose-gold), transparent);
+    opacity: 0.6;
+  }
 
-  margin: 0 0 2.5rem;
-  text-align: center;
-  background: var(--gradient-elegant);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 2.5rem;
-  position: relative;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-shadow: none;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.2));
-}
+  /* Title Styling */
+  & h1 {
+    margin: 0 0 2rem;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--rose-gold-dark);
+    text-shadow: 0 2px 10px rgba(183, 110, 121, 0.1);
+    
+    /* Decorative Sparkles (Refactored) */
+    &::after {
+      content: "✨";
+      position: absolute;
+      font-size: 1.2rem;
+      animation: var(--sparkle-animation);
+      filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
+    }
 
-#game-controls h1::after {
-  content: "✨";
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.2rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 1.5s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-}
+    /* Scattered sparkles using nth-of-type selector logic if possible, 
+       but for pure CSS replacement we'll keep it simple or use multiple box-shadows/pseudo-elements if we wanted to be fancy.
+       For now, we will simplify the multiple pseudo-elements from the old code into a cleaner single decoration 
+       or assume adjacent sibling usage for the chaotic sparkles if we want to preserve them exactly. 
+       Let's stick to a cleaner, more elegant single sparkle for the title to reduce visual noise. */
+  }
 
-#game-controls h1::after {
-  content: "✨";
-  position: absolute;
-  bottom: -20px;
-  left: 0%;
-  transform: translateX(-50%);
-  font-size: 1.2rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 1.5s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-}
-
-#game-controls h1::after {
-  content: "✨";
-  position: absolute;
-  bottom: -20px;
-  left: 10%;
-  transform: translateX(-50%);
-  font-size: 1.2rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 1.5s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-}
-
-#game-controls h1::after {
-  content: "✨";
-  position: absolute;
-  bottom: -25px;
-  left: 70%;
-  transform: translateX(-50%);
-  font-size: 1.2rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 1.5s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-}
-
-#game-controls h1::after {
-  content: "✨";
-  position: absolute;
-  bottom: -30px;
-  left: 40%;
-  transform: translateX(-50%);
-  font-size: 1.2rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 1.5s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
+  /* Interactive States */
+  &:hover {
+    box-shadow: 
+      0 12px 48px rgba(183, 110, 121, 0.2),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.75);
+    transform: translateY(-2px);
+  }
 }
 
 .control-group {
@@ -629,51 +559,65 @@ body::after {
   margin: 2.5rem 0;
 }
 
+/* --- THE GLASS COCKPIT: AVATARS --- */
 .player-card {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.95),
-    rgba(255, 240, 245, 0.9)
-  );
-  padding: 2.5rem;
+  /* Prism Base */
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--border-radius-md);
+  padding: 2.5rem;
   text-align: center;
-  box-shadow: var(--shadow-subtle);
-  transition: var(--transition);
+  position: relative;
+  transition: all 0.4s ease-out;
   opacity: 0;
   transform: translateY(30px) scale(0.98);
-  animation: elegantFadeIn 1s ease-out forwards;
-  border: 1px solid rgba(255, 182, 193, 0.3);
-  position: relative;
-  backdrop-filter: blur(10px);
-}
-
-.player-card::before {
-  content: "👑";
-  position: absolute;
-  top: -8px;
-  right: 20px;
-  font-size: 1.3rem;
-  animation: var(--sparkle-animation);
-  animation-delay: 0.5s;
-  filter: drop-shadow(0 2px 4px rgba(183, 110, 121, 0.3));
-}
-
-@keyframes elegantFadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  animation: elegantFadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  
+  /* Inner Info Text */
+  & div {
+    font-size: 1.1rem;
+    margin: 0.8rem 0;
+    color: var(--secondary-color);
+    font-weight: 600;
   }
-}
 
-.player-card:hover {
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-4px) scale(1.01);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 240, 245, 0.95),
-    rgba(255, 228, 240, 0.9)
-  );
+  /* Crown Icon */
+  &::before {
+    content: "👑";
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    font-size: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 4px 6px rgba(183, 110, 121, 0.3));
+  }
+
+  /* Hover State: Specular Highlight */
+  &:hover {
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 
+      0 10px 30px rgba(183, 110, 121, 0.2),
+      inset 0 0 20px rgba(255, 255, 255, 0.5);
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(255, 182, 193, 0.8);
+  }
+
+  /* Active/Setter State */
+  &.active {
+    background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,245,248,0.9));
+    border: 2px solid var(--rose-gold);
+    box-shadow: 0 0 25px rgba(183, 110, 121, 0.3);
+    
+    &::before {
+      opacity: 1;
+      transform: translateY(0);
+      animation: var(--sparkle-animation);
+    }
+  }
 }
 
 .player-card div {
@@ -730,6 +674,11 @@ body::after {
 #map .leaflet-container {
   cursor: crosshair;
   background-color: #f0f0f0;
+}
+
+/* THE GLASS COCKPIT: MAP TINT */
+.leaflet-tile-pane { 
+    filter: sepia(0.2) hue-rotate(320deg) contrast(0.95); 
 }
 
 #map .leaflet-container:active {
