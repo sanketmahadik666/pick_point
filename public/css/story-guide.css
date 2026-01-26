@@ -115,6 +115,11 @@
   filter: brightness(1.1);
 }
 
+/* Hide Close Button as requested */
+#story-close-btn {
+  display: none;
+}
+
 /* Floating Guide Button (The Trigger) */
 .float-btn {
   position: absolute;
