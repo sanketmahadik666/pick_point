@@ -30,6 +30,8 @@ function configureSockets(io) {
             if (game) {
                 const command = new SetLocationCommand(game, socket, { location, radius, hint });
                 command.execute();
+            } else {
+                socket.emit('error_message', { message: 'Game not found.' });
             }
         });
 
@@ -38,6 +40,23 @@ function configureSockets(io) {
             if (game) {
                  const command = new MakeGuessCommand(game, socket, { location });
                  command.execute();
+            } else {
+                socket.emit('error_message', { message: 'Game not found.' });
+            }
+        });
+
+        socket.on('quiz_answer', ({ gameId, selectedIndex, correctIndex }) => {
+            const game = manager.getGame(gameId);
+            if (game && selectedIndex === correctIndex) {
+                // Award bonus points for correct quiz answer
+                const bonusPoints = 50;
+                if (game.players[socket.id]) {
+                    game.players[socket.id].score += bonusPoints;
+                    game.emitGameState();
+                    socket.emit('quiz_result', { correct: true, points: bonusPoints });
+                }
+            } else {
+                socket.emit('quiz_result', { correct: false, points: 0 });
             }
         });
 
@@ -51,6 +70,16 @@ function configureSockets(io) {
                     // If game needs cleanup, it handles it internally via timeouts or we can check here
                     if (Object.keys(game.players).length === 0) {
                         game.cleanup();
+                    } else {
+                        // Notify remaining player
+                        game.io.to(gameId).emit('error_message', { 
+                            message: 'Your opponent has disconnected. The game will end.' 
+                        });
+                        setTimeout(() => {
+                            if (game && Object.keys(game.players).length < 2) {
+                                game.cleanup();
+                            }
+                        }, 5000);
                     }
                 }
                 manager.removePlayerMapping(socket.id);

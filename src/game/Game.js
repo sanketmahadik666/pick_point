@@ -1,6 +1,7 @@
 const haversine = require('haversine-distance');
 const { LogarithmicScoring } = require('../utils/Scoring');
 const { getGameManager } = require('./GameManager');
+const { fetchFunFact, getCountry, generateCountryQuiz } = require('../utils/LocationData');
 
 const MAX_ROUNDS = 6;
 const ROUND_DELAY = 5000;
@@ -121,11 +122,15 @@ class Game {
         this.io.to(socketId).emit('guess_result', {
             distance: distance / 1000,
             attemptsLeft: this.attemptsLeft,
-            guessLocation: location
+            guessLocation: location,
+            // Optionally expand hint radius on each guess (progressive difficulty)
+            newHintRadius: this.hint ? this.hint.radius * 1.2 : null
         });
 
         if (distance <= 50 || this.attemptsLeft <= 0) {
-            this.endRound(distance);
+            this.endRound(distance).catch(err => {
+                console.error(`[${this.gameId}] Error in endRound:`, err);
+            });
         }
     }
 
@@ -133,17 +138,41 @@ class Game {
         return this.scoringStrategy.calculate(distance);
     }
 
-    endRound(distance) {
+    async endRound(distance) {
         this.transitionTo('ROUND_END');
         const points = this.calculatePoints(distance);
         this.players[this.guesserId].score += points;
 
+        const actualLoc = [this.actualLocation.lat, this.actualLocation.lon];
+        
+        // Emit round end data
         this.io.to(this.gameId).emit('round_end', {
-            actualLocation: [this.actualLocation.lat, this.actualLocation.lon],
+            actualLocation: actualLoc,
             lastGuess: this.lastGuess,
             distance: distance / 1000,
             roundPoints: points,
         });
+
+        // Fetch and emit fun fact (async, non-blocking)
+        fetchFunFact(this.actualLocation.lat, this.actualLocation.lon)
+            .then(fact => {
+                if (fact) {
+                    this.io.to(this.gameId).emit('fun_fact', { text: fact });
+                }
+            })
+            .catch(() => {}); // Silently fail if fetch fails
+
+        // Generate and emit quiz (70% chance)
+        if (Math.random() < 0.7) {
+            getCountry(this.actualLocation.lat, this.actualLocation.lon)
+                .then(country => {
+                    if (country) {
+                        const quiz = generateCountryQuiz(country);
+                        this.io.to(this.gameId).emit('quiz', quiz);
+                    }
+                })
+                .catch(() => {}); // Silently fail if fetch fails
+        }
 
         setTimeout(() => {
             // Check if game still exists before starting next round

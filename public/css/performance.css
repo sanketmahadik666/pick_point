@@ -1,0 +1,375 @@
+/* Performance Optimizations for Low-End Mobile Devices */
+
+/* Disable expensive filters on all mobile */
+@media (max-width: 768px) {
+  /* Reduce filter complexity */
+  .leaflet-tile-pane {
+    filter: none !important;
+  }
+  
+  /* Simplify entry transition */
+  .glass-curtain {
+    animation-duration: 6s !important;
+  }
+  
+  .glass-curtain::before,
+  .glass-curtain::after {
+    animation-duration: 1.5s !important;
+  }
+  
+  /* Reduce text blur effects */
+  .eureka-title span {
+    filter: blur(8px) !important;
+  }
+  
+  @keyframes constructText {
+    0% { filter: blur(8px); }
+    100% { filter: blur(0px); }
+  }
+}
+
+/* Detect low-end devices using media queries */
+@media (max-width: 768px) and (max-resolution: 2dppx) {
+  /* Reduce backdrop-filter usage (very expensive on mobile) */
+  #game-controls,
+  .glass-panel,
+  .player-card,
+  .input.vivele-input,
+  #prompt,
+  #fun-fact,
+  #quiz {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  /* Simplify shadows for better performance */
+  * {
+    box-shadow: none !important;
+  }
+
+  #game-controls,
+  .player-card,
+  .info-panel,
+  #map-container {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Disable complex animations */
+  body::before,
+  body::after,
+  #map-container::before,
+  .player-card::before {
+    display: none !important;
+  }
+
+  /* Simplify transitions */
+  * {
+    transition-duration: 0.2s !important;
+    animation-duration: 0.5s !important;
+  }
+
+  /* Use transform3d for GPU acceleration */
+  button:hover,
+  .btn:hover,
+  .player-card:hover {
+    transform: translate3d(0, -2px, 0) !important;
+  }
+
+  /* Reduce gradient complexity */
+  .button.vivele-button,
+  button.vivele-button {
+    background: var(--vivele-bright) !important;
+  }
+
+  .control-group button {
+    background: var(--gradient-elegant) !important;
+  }
+}
+
+/* Performance optimizations for all mobile devices */
+@media (max-width: 768px) {
+  /* Use CSS containment to isolate rendering */
+  #game-controls,
+  #map-container,
+  .player-card,
+  .control-group {
+    contain: layout style paint;
+  }
+
+  /* Optimize transforms - use translate3d for GPU */
+  button,
+  .btn,
+  .player-card,
+  .quiz-btn {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+  }
+
+  /* Reduce backdrop-filter blur on mobile */
+  #game-controls {
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .player-card {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* Simplify entry transition on mobile */
+  .glass-curtain {
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    animation-duration: 8s !important;
+  }
+
+  .glass-curtain::before,
+  .glass-curtain::after {
+    animation-duration: 2s !important;
+  }
+
+  /* Reduce animation complexity */
+  @keyframes elegantSparkle {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Disable decorative sparkles on mobile */
+  body::before,
+  body::after {
+    display: none !important;
+  }
+
+  /* Optimize map rendering */
+  #map {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Reduce shadow layers */
+  --shadow-subtle: 0 2px 8px rgba(184, 105, 181, 0.1);
+  --shadow-elegant: 0 4px 16px rgba(184, 105, 181, 0.12);
+  --shadow-hover: 0 6px 20px rgba(184, 105, 181, 0.15);
+}
+
+/* Very low-end device detection (older phones) */
+@media (max-width: 480px) and (max-resolution: 1.5dppx) {
+  /* Disable all backdrop-filter */
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Use solid backgrounds */
+  #game-controls {
+    background: rgba(255, 255, 255, 0.98) !important;
+  }
+
+  .player-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  /* Disable all animations */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Remove decorative elements */
+  body::before,
+  body::after,
+  #map-container::before,
+  .player-card::before,
+  #fun-fact::before,
+  #quiz::before {
+    display: none !important;
+  }
+
+  /* Simplify gradients */
+  .button.vivele-button {
+    background: var(--vivele-bright) !important;
+  }
+
+  .control-group button {
+    background: var(--vivele-deep) !important;
+  }
+}
+
+/* Performance hints for browsers */
+#game-controls,
+#map-container,
+.player-card {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Optimize repaints - use opacity and transform only */
+.player-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Reduce reflows - batch DOM updates */
+.hidden {
+  display: none !important;
+  visibility: hidden;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Optimize input rendering */
+input,
+select,
+textarea {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Debounce expensive operations via CSS */
+input:focus,
+select:focus {
+  transform: translate3d(0, -1px, 0) !important;
+  transition: transform 0.15s ease-out !important;
+}
+
+/* Optimize button interactions */
+button:active,
+.btn:active {
+  transform: translate3d(0, 0, 0) scale(0.98) !important;
+  transition: transform 0.1s ease-out !important;
+}
+
+/* Reduce paint complexity */
+#map-container {
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+/* Optimize text rendering */
+body {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Reduce paint operations - batch style changes */
+@media (max-width: 768px) {
+  /* Disable expensive pseudo-elements */
+  button::before,
+  .btn::before,
+  .control-group button::before {
+    display: none !important;
+  }
+  
+  /* Simplify hover effects */
+  button:hover,
+  .btn:hover {
+    transform: translate3d(0, -1px, 0) !important;
+    transition: transform 0.2s ease-out !important;
+  }
+  
+  /* Reduce animation complexity */
+  @keyframes elegantSparkle {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.4; }
+  }
+  
+  /* Simplify card animations */
+  .player-card {
+    animation-duration: 0.6s !important;
+  }
+}
+
+/* Disable expensive filters on mobile */
+@media (max-width: 768px) {
+  .leaflet-tile-pane {
+    filter: none !important;
+  }
+}
+
+/* Reduce animation frame rate on low-end devices */
+@media (prefers-reduced-motion: no-preference) and (max-width: 768px) {
+  @keyframes elegantSparkle {
+    0%, 100% { opacity: 0; transform: scale(0.9); }
+    50% { opacity: 0.6; transform: scale(1.05); }
+  }
+  
+  @keyframes elegantFadeIn {
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+}
+
+/* Force GPU acceleration for animated elements */
+.player-card,
+.button,
+.btn,
+.quiz-btn {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+/* Optimize scroll performance */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce composite layers */
+@media (max-width: 768px) {
+  #game-controls::before,
+  #game-controls::after,
+  .player-card::before,
+  .player-card::after {
+    display: none !important;
+  }
+  
+  /* Simplify map container */
+  #map-container::before {
+    display: none !important;
+  }
+  
+  /* Disable decorative sparkles */
+  #fun-fact::before,
+  #quiz::before {
+    display: none !important;
+  }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 768px) {
+  /* Reduce will-change usage (memory intensive) */
+  * {
+    will-change: auto !important;
+  }
+  
+  /* Only use will-change on actively animating elements */
+  .player-card,
+  button:active,
+  .btn:active {
+    will-change: transform !important;
+  }
+  
+  /* Remove will-change after animation */
+  .player-card {
+    animation-fill-mode: forwards;
+  }
+  
+  /* Optimize scrolling */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+  
+  /* Reduce repaints during scroll */
+  #game-controls,
+  #map-container {
+    position: relative;
+    z-index: auto;
+  }
+}

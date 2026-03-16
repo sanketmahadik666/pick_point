@@ -18,6 +18,9 @@
   backdrop-filter: blur(8px);
   
   transition: opacity 0.4s ease;
+  /* Performance: GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 #story-overlay.hidden {
@@ -59,6 +62,10 @@
   position: relative; 
   
   animation: cardPopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy pop */
+  /* Performance: GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform, opacity;
 }
 
 /* Typography inside the card */
@@ -110,7 +117,7 @@
 }
 
 .story-nav button:hover {
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
   box-shadow: 0 6px 15px rgba(184, 105, 181, 0.5);
   filter: brightness(1.1);
 }
@@ -141,7 +148,7 @@
 }
 
 .float-btn:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: translate3d(0, -2px, 0) scale(1.05);
   background: #fff;
   border-color: var(--vivele-bright);
   color: var(--vivele-bright);
@@ -149,6 +156,6 @@
 }
 
 @keyframes cardPopIn {
-  from { opacity: 0; transform: scale(0.5) translateY(50px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from { opacity: 0; transform: scale(0.5) translate3d(0, 50px, 0); }
+  to { opacity: 1; transform: scale(1) translate3d(0, 0, 0); }
 }

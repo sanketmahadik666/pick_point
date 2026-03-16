@@ -22,7 +22,10 @@ class MapFacade {
     }
 
     onClick(callback, debounceTime = 200) {
-        this.map.on('click', this.debounce(callback, debounceTime));
+        // Increase debounce time on mobile for better performance
+        const isMobile = window.innerWidth <= 768;
+        const debounceDelay = isMobile ? 300 : debounceTime;
+        this.map.on('click', this.debounce(callback, debounceDelay));
     }
     
     // Helper to decouple Debounce logic
@@ -35,6 +38,18 @@ class MapFacade {
             };
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Throttle for expensive operations
+    throttle(func, limit) {
+        let inThrottle;
+        return (...args) => {
+            if (!inThrottle) {
+                func(...args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
         };
     }
 
@@ -51,28 +66,41 @@ class MapFacade {
     }
 
     drawEllipse(center, radiusX, radiusY, rotation) {
-        // Implementation of ellipse drawing calculation
-        const points = [];
-        const numPoints = 60;
-        for (let i = 0; i < numPoints; i++) {
-            const angle = (i / numPoints) * 2 * Math.PI;
-            const x = Math.cos(angle) * radiusX;
-            const y = Math.sin(angle) * radiusY;
-            const rotatedX = x * Math.cos(rotation) - y * Math.sin(rotation);
-            const rotatedY = x * Math.sin(rotation) + y * Math.cos(rotation);
-            // Approx conversion for display
-            const dx = rotatedX / 111320;
-            const dy = rotatedY / 110540;
-            points.push([center[0] + dy, center[1] + dx]);
-        }
+        // Throttle expensive ellipse calculations on mobile
+        const isMobile = window.innerWidth <= 768;
+        const numPoints = isMobile ? 40 : 60; // Reduce points on mobile
         
-        if (this.hintEllipse) this.map.removeLayer(this.hintEllipse);
-        this.hintEllipse = L.polygon(points, {
-            color: 'blue',
-            fillColor: '#30f',
-            fillOpacity: 0.2
-        }).addTo(this.map);
-        this.map.fitBounds(this.hintEllipse.getBounds());
+        // Use requestAnimationFrame for smooth rendering
+        requestAnimationFrame(() => {
+            const points = [];
+            for (let i = 0; i < numPoints; i++) {
+                const angle = (i / numPoints) * 2 * Math.PI;
+                const x = Math.cos(angle) * radiusX;
+                const y = Math.sin(angle) * radiusY;
+                const rotatedX = x * Math.cos(rotation) - y * Math.sin(rotation);
+                const rotatedY = x * Math.sin(rotation) + y * Math.cos(rotation);
+                // Approx conversion for display
+                const dx = rotatedX / 111320;
+                const dy = rotatedY / 110540;
+                points.push([center[0] + dy, center[1] + dx]);
+            }
+            
+            if (this.hintEllipse) this.map.removeLayer(this.hintEllipse);
+            this.hintEllipse = L.polygon(points, {
+                color: 'blue',
+                fillColor: '#30f',
+                fillOpacity: 0.2
+            }).addTo(this.map);
+            
+            // Throttle fitBounds on mobile
+            if (isMobile) {
+                setTimeout(() => {
+                    this.map.fitBounds(this.hintEllipse.getBounds());
+                }, 100);
+            } else {
+                this.map.fitBounds(this.hintEllipse.getBounds());
+            }
+        });
     }
 
     clearLayers() {

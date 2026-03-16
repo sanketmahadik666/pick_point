@@ -55,11 +55,71 @@
   --sparkle-animation: elegantSparkle 3s ease-in-out infinite;
 }
 
+/* Bulma Overrides - Ensure VIVELE Design System Takes Precedence */
 * {
   box-sizing: border-box;
+}
+
+/* Reset margins/padding only for our custom components */
+#game-controls,
+#map-container,
+.player-card,
+.control-group {
   margin: 0;
   padding: 0;
 }
+
+/* Override Bulma button styles with VIVELE */
+.button.vivele-button,
+button.vivele-button {
+  /* VIVELE button styles will override Bulma */
+  background: linear-gradient(
+    135deg,
+    rgba(227, 230, 243, 0.9),
+    rgba(248, 225, 244, 0.9)
+  ) !important;
+  color: var(--rose-gold) !important;
+  border: 1.5px solid var(--rose-gold) !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-family: "Quicksand", sans-serif !important;
+  font-weight: 500 !important;
+  box-shadow: var(--shadow-subtle) !important;
+}
+
+/* Override Bulma input styles with VIVELE */
+.input.vivele-input,
+input.vivele-input {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid rgba(183, 110, 121, 0.4) !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-family: "Quicksand", sans-serif !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+/* Override Bulma label styles */
+.label {
+  font-family: "Quicksand", sans-serif !important;
+  color: var(--secondary-color) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+/* Ensure Bulma columns work with VIVELE cards */
+.columns .column .player-card {
+  height: 100%;
+}
+
+/* Override Bulma content styles */
+.content.vivele-content {
+  color: inherit;
+}
+
+.vivele-section {
+  margin: 1rem 0;
+}
+
+/* Bulma slider override - moved to bulma-overrides.css */
 
 body {
   background: var(--gradient-background);
@@ -73,6 +133,10 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Performance optimizations */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: scroll-position;
 }
 
 h1,
@@ -99,6 +163,11 @@ h3 {
   z-index: 1;
   touch-action: pan-x pan-y pinch-zoom;
   -webkit-tap-highlight-color: transparent;
+  /* Performance optimizations */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  contain: layout style paint;
 }
 
 #map::before {
@@ -174,14 +243,14 @@ button:focus-visible,
   background: var(--rose-gold);
   color: #fff;
   box-shadow: var(--shadow-hover);
-  transform: translateY(-2px) scale(1.02);
+  transform: translate3d(0, -2px, 0) scale(1.02);
   outline: 3px solid rgba(183, 110, 121, 0.4);
   outline-offset: 2px;
 }
 
 button:active,
 .btn:active {
-  transform: translateY(0) scale(0.98);
+  transform: translate3d(0, 0, 0) scale(0.98);
 }
 
 .info-panel,
@@ -217,50 +286,7 @@ button:active,
   font-size: 1.8rem;
 }
 
-.quiz-btn {
-  display: block;
-  width: 100%;
-  padding: 1rem 1.5rem;
-  margin: 0.8rem 0;
-  border-radius: 12px;
-  border: 1px solid var(--vivele-mid);
-  background: white;
-  color: #1a0520;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  text-align: left;
-  position: relative;
-  overflow: hidden;
-}
-
-.quiz-btn:hover:not(:disabled) {
-  background: var(--vivele-light);
-  transform: translateX(5px);
-  border-color: var(--vivele-bright);
-  box-shadow: 0 4px 12px rgba(184, 105, 181, 0.2);
-}
-
-/* Selected/Correct States */
-.quiz-btn.correct {
-  background: linear-gradient(135deg, #00b09b, #96c93d); /* Success Gradient */
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 0 15px rgba(0, 176, 155, 0.4);
-}
-
-.quiz-btn.wrong {
-  background: linear-gradient(135deg, #ff5f6d, #ffc371); /* Error Gradient */
-  color: white;
-  border-color: transparent;
-  opacity: 0.8;
-}
-
-.quiz-btn:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
+/* Quiz button styles moved to bulma-overrides.css for Bulma compatibility */
 
 /* Feedback Text */
 .success-text {
@@ -311,7 +337,7 @@ select:focus-visible {
   box-shadow:
     0 0 0 4px rgba(183, 110, 121, 0.15),
     var(--glow-soft);
-  transform: translateY(-1px);
+  transform: translate3d(0, -1px, 0);
   background: rgba(255, 255, 255, 1);
 }
 
@@ -413,6 +439,11 @@ body::after {
   z-index: 10;
   position: relative;
   transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Performance optimizations */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  contain: layout style paint;
+  will-change: transform, opacity;
 
   /* Top Accent Line */
   &::before {
@@ -458,7 +489,7 @@ body::after {
       0 12px 48px rgba(183, 110, 121, 0.2),
       inset 0 0 0 1px rgba(255, 255, 255, 0.5);
     background: rgba(255, 255, 255, 0.75);
-    transform: translateY(-2px);
+    transform: translate3d(0, -2px, 0);
   }
 }
 
@@ -467,6 +498,19 @@ body::after {
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+/* Bulma field compatibility */
+.control-group.field {
+  display: block; /* Use Bulma's field structure */
+}
+
+.control-group .control {
+  margin-bottom: 1rem;
+}
+
+.control-group .control:last-child {
+  margin-bottom: 0;
 }
 
 .control-group label {
@@ -497,7 +541,7 @@ body::after {
   box-shadow:
     0 0 0 4px rgba(183, 110, 121, 0.15),
     inset 0 2px 4px rgba(183, 110, 121, 0.05);
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
 }
 
 .control-group input[type="range"] {
@@ -605,26 +649,39 @@ body::after {
 
 .control-group button:hover,
 .control-group button:focus-visible {
-  transform: translateY(-2px) scale(1.01);
+  transform: translate3d(0, -2px, 0) scale(1.01);
   box-shadow: var(--shadow-hover);
   outline: 3px solid rgba(255, 255, 255, 0.5);
   outline-offset: 2px;
 }
 
 .control-group button:active {
-  transform: translateY(0) scale(0.99);
+  transform: translate3d(0, 0, 0) scale(0.99);
 }
 
-.hidden {
+/* Hidden class - Compatible with Bulma */
+.hidden,
+.is-hidden {
   display: none !important;
   visibility: hidden;
+}
+
+/* Bulma is-hidden utility compatibility */
+.is-hidden-mobile {
+  display: none !important;
+}
+
+@media screen and (min-width: 769px) {
+  .is-hidden-mobile {
+    display: block !important;
+  }
 }
 
 /* --- STORY GUIDE UI Moved to story-guide.css --- */
 
 @keyframes slideUpFade {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, 20px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* Screen reader only class */
@@ -660,10 +717,19 @@ body::after {
 }
 
 #player-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  /* Use Bulma grid, but maintain VIVELE spacing */
   margin: 2.5rem 0;
+}
+
+/* Override Bulma column padding for player cards */
+#player-info .column {
+  padding: 0.75rem; /* Reduced from Bulma default 0.75rem to match VIVELE gap */
+}
+
+/* Ensure player cards fill their columns */
+#player-info .column .player-card {
+  height: 100%;
+  margin: 0;
 }
 
 /* --- THE GLASS COCKPIT: AVATARS --- */
@@ -677,10 +743,13 @@ body::after {
   padding: 2.5rem;
   text-align: center;
   position: relative;
-  transition: all 0.4s ease-out;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
   opacity: 0;
-  transform: translateY(30px) scale(0.98);
+  transform: translate3d(0, 30px, 0) scale(0.98);
   animation: elegantFadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* Performance optimizations */
+  will-change: transform, opacity;
+  contain: layout style paint;
   
   /* Inner Info Text */
   & div {
@@ -709,7 +778,7 @@ body::after {
     box-shadow: 
       0 10px 30px rgba(183, 110, 121, 0.2),
       inset 0 0 20px rgba(255, 255, 255, 0.5);
-    transform: translateY(-4px) scale(1.02);
+    transform: translate3d(0, -4px, 0) scale(1.02);
     border-color: rgba(255, 182, 193, 0.8);
   }
 
@@ -773,7 +842,7 @@ body::after {
 }
 
 #map-container:hover {
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
   box-shadow: 
     0 30px 70px rgba(0,0,0,0.3),
     0 0 0 12px rgba(184, 105, 181, 0.3);
@@ -893,37 +962,7 @@ body::after {
   animation-delay: 1s;
 }
 
-#quiz button {
-  background: var(--gradient-elegant);
-  color: white;
-  border: none;
-  padding: 0.875rem 1.5rem;
-  min-height: 44px;
-  min-width: 120px;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--border-radius-sm);
-  margin: 0.75rem 0.75rem 0 0;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-subtle);
-  position: relative;
-  overflow: hidden;
-  -webkit-tap-highlight-color: rgba(183, 110, 121, 0.2);
-  touch-action: manipulation;
-}
-
-#quiz button:hover,
-#quiz button:focus-visible {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--shadow-hover);
-  outline: 3px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
-}
-
-#quiz button:active {
-  transform: translateY(0) scale(0.98);
-}
+/* Quiz button styles consolidated in bulma-overrides.css */
 
 #prompt {
   text-align: center;
@@ -1067,8 +1106,11 @@ h1, h2, h3 {
 /* Mobile devices */
 @media (max-width: 768px) {
   #player-info {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    /* Bulma columns handle responsive layout */
+  }
+  
+  #player-info .column {
+    padding: 0.5rem; /* Tighter spacing on mobile */
   }
 
   #game-controls {
